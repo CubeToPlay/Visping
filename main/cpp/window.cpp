@@ -2,7 +2,7 @@
 #define UNICODE
 #endif 
 
-#include <ping.h>
+// #include <ping.h>
 #include <iostream>
 
 #include <windows.h>
