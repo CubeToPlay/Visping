@@ -2,7 +2,7 @@
 #define UNICODE
 #endif 
 
-#include "ping.h"
+#include <ping.h>
 #include <iostream>
 
 #include <windows.h>
@@ -73,7 +73,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
             HDC hdc = BeginPaint(hwnd, &ps);
 
             // All painting occurs here (Between BeginPaint and EndPaint)
-            ping::test();
+            // ping::test();
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
 
