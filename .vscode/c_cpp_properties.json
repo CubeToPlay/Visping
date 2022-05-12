@@ -4,8 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/src/main/include/**",
-                "/src/main/cpp/**"
+                "${workspaceFolder}/main/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -16,7 +15,10 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-gcc-x64",
-            "compilerPath": "C:/msys64/mingw64/bin/gcc.exe"
+            "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+            "compilerArgs": [
+                "g++ -Ic:/Visping/main/cpp ping.cpp"
+            ]
         }
     ],
     "version": 4
