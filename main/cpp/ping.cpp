@@ -2,6 +2,7 @@
 
 #include <iostream>
 
-void ping::test(){
-    std::cout << cool << std::endl;
+void ping::server(const std::string& server){
+    const std::string program = "ping -t" + server;
+    system(const_cast<char*>(program.c_str()));
 }

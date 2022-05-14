@@ -74,7 +74,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
             HDC hdc = BeginPaint(hwnd, &ps);
 
             // All painting occurs here (Between BeginPaint and EndPaint)
-            // ping::test();
+            ping::server("google.com");
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
 

@@ -16,7 +16,7 @@
             "intelliSenseMode": "windows-gcc-x64",
             "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
             "compilerArgs": [
-                "g++ -IVisping/main/include window.cpp"
+                "-Imain/include window.cpp"
             ]
         }
     ],

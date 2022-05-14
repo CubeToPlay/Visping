@@ -1,7 +1,8 @@
 #pragma once
 
+#include <string>
+
 class ping {
     public:
-        const static int cool = 0;
-        static void test();
+        static void server(const std::string&);
 };
