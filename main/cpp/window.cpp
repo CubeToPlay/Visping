@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <windows.h>
+// #include <string>
 
 #include "ping.h"
 
@@ -74,7 +75,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
             HDC hdc = BeginPaint(hwnd, &ps);
 
             // All painting occurs here (Between BeginPaint and EndPaint)
-            ping::server("google.com");
+            const std::string server = "google.com";
+            ping::server(server);
+            ping::test(1);
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
 

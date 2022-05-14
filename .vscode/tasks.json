@@ -6,11 +6,12 @@
             "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
-                "-g",
-                "${file}",
+                "${fileDirname}\\*.cpp",
                 "-o",
-                "${fileBasenameNoExtension}.exe",
-                "-Imain\\include"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-I",
+                "${workspaceFolder}\\main\\include",
+                "-lgdi32"
             ],
             "options": {
                 "cwd": "${fileDirname}"
