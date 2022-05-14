@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <windows.h>
+#include <thread>
 // #include <string>
 
 #include "ping.h"
@@ -58,6 +59,10 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
        DispatchMessage(&msg);
    };
 
+   //Ping Thread
+   const char server[] = "google.com";
+   std::thread pinging (ping::server, server);
+
    return 0;
 }
 
@@ -75,9 +80,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
             HDC hdc = BeginPaint(hwnd, &ps);
 
             // All painting occurs here (Between BeginPaint and EndPaint)
-            const std::string server = "google.com";
-            ping::server(server);
-            ping::test(1);
+            // const char server[] = "google.com";
+            // std::cout << ping::server(server) << std::endl;
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
 
