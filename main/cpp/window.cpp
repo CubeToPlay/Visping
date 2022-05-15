@@ -15,55 +15,59 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Like Main, but for windows.
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow){
-   //Creates the Window Class (Windows Class is not the same as c++ classes)
-   const wchar_t CLASS_NAME[] = L"Sample Window Class";//An array of characters.
+    //Creates the Window Class (Windows Class is not the same as c++ classes)
+    const wchar_t CLASS_NAME[] = L"Sample Window Class";//An array of characters.
 
-   WNDCLASS wc = {};
+    WNDCLASS wc = {};
 
-   wc.lpfnWndProc   = WindowProc;
-   wc.hInstance     = hInstance;
-   wc.lpszClassName = CLASS_NAME;
+    wc.lpfnWndProc   = WindowProc;
+    wc.hInstance     = hInstance;
+    wc.lpszClassName = CLASS_NAME;
 
-   //Registers the Window Class.
-   RegisterClass(&wc);
+    //Registers the Window Class.
+    RegisterClass(&wc);
 
 
 
-   //Creating the Window Instance
-   HWND hwnd = CreateWindowEx(
-      0,                              // Optional window styles.
-      CLASS_NAME,                     // Window class
-      L"Windows Application",    // Window text
-      WS_OVERLAPPEDWINDOW,            // Window style
+    //Creating the Window Instance
+    HWND hwnd = CreateWindowEx(
+        0,                              // Optional window styles.
+        CLASS_NAME,                     // Window class
+        L"Windows Application",    // Window text
+        WS_OVERLAPPEDWINDOW,            // Window style
 
-      // Size and position
-      CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+        // Size and position
+        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 
-      NULL,       // Parent window    
-      NULL,       // Menu
-      hInstance,  // Instance handle
-      NULL        // Additional application data
-   );
+        NULL,       // Parent window    
+        NULL,       // Menu
+        hInstance,  // Instance handle
+        NULL        // Additional application data
+    );
 
-   //If creating the Window Fails, it quits the program
-   if (hwnd == NULL){
-      return 0;
-   }
+    //If creating the Window Fails, it quits the program
+    if (hwnd == NULL){
+        return 0;
+    }
 
-   ShowWindow(hwnd, nCmdShow);
+    //Ping Thread
+    const char server[] = "google.com";
+    std::thread pinging (ping::server, server);
 
-   //Message Loop
-   MSG msg = { };
-   while (GetMessage(&msg, NULL, 0, 0) > 0 ){
-       TranslateMessage(&msg);
-       DispatchMessage(&msg);
-   };
+    std::string result = ping::server(server);
+    
+    std::cout << "Ping: " << result << std::endl;
 
-   //Ping Thread
-   const char server[] = "google.com";
-   std::thread pinging (ping::server, server);
+    ShowWindow(hwnd, nCmdShow);
 
-   return 0;
+    //Message Loop
+    MSG msg = { };
+    while (GetMessage(&msg, NULL, 0, 0) > 0 ){
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    };
+
+    return 0;
 }
 
 //Window Proc Function
@@ -80,8 +84,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
             HDC hdc = BeginPaint(hwnd, &ps);
 
             // All painting occurs here (Between BeginPaint and EndPaint)
-            // const char server[] = "google.com";
-            // std::cout << ping::server(server) << std::endl;
+            const char server[] = "google.com";
+            std::thread pinging (ping::server, server);
+
+            std::string result = ping::server(server);
+            
+            std::cout << "Ping: " << result << std::endl;
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
 

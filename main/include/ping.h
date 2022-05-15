@@ -17,7 +17,7 @@ namespace ping {
     inline std::string server(const char* server){
         std::array<char, 128> buffer;
         std::string result;
-        std::string cmd = "ping -t ";
+        std::string cmd = "ping -n 1 ";
         
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(strcat(const_cast<char*>(cmd.c_str()), server), "r"), pclose);
         if (!pipe) {
@@ -27,7 +27,15 @@ namespace ping {
             result += buffer.data();
         }
 
-        std::cout << result << std::endl;
+        const std::string searchBegin = "Average = ";
+        int locationBegin = result.find(searchBegin);
+
+        result = result.erase(0, locationBegin + searchBegin.length());
+
+        const std::string searchEnd = "ms";
+        int locationEnd = result.find(searchEnd);
+
+        result = result.erase(locationEnd, locationEnd + searchEnd.length());
 
         return result;
     }
