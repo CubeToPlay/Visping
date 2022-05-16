@@ -8,12 +8,15 @@
 #include <string>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 #include <array>
+#include <vector>
 
-#define listLength 10
+#define arrayLength 10
 
 namespace ping {
-    extern int list[listLength];
+    static std::array<int, arrayLength> list;
+
     inline std::string server(const char* server){
         std::array<char, 128> buffer;
         std::string result;
@@ -27,6 +30,34 @@ namespace ping {
             result += buffer.data();
         }
 
+        return result;
+    }
+
+    inline int average(){
+        int average = 0;
+
+        for(const int &ping : ping::list){
+            average += ping;
+        }
+
+        average = round(average/arrayLength);
+
+        return average;
+    }
+
+    inline int highest(){
+        int highest = 0;
+
+        for(const int &ping : ping::list){
+            if (ping > highest){highest = ping;}
+        }
+
+        return highest;
+    }
+
+    inline int once(const char* server){
+        std::string result = ping::server(server);
+
         const std::string searchBegin = "Average = ";
         int locationBegin = result.find(searchBegin);
 
@@ -37,28 +68,36 @@ namespace ping {
 
         result = result.erase(locationEnd, locationEnd + searchEnd.length());
 
-        return result;
+        return stoi(result);
     }
 
-    inline int average(){
-        int average = 0;
-
-        for (int i = 0; i < listLength; i++){
-            average += list[i];
-        }
-
-        average = round(average/listLength);
-
-        return average;
+    inline int repeat(const char* server){
+        do {
+            ping::once(server);
+        } while (true);
     }
 
-    inline int highest(){
-        int highest = 0;
-
-        for (int i = 0; i < listLength; i++){
-            if (list[i] > highest){highest = list[i];}
+    inline void insert(int value){
+        if (ping::list.size() < ping::list.max_size()){
+            ping::list[ping::list.size()] = value;
+            // std::cout << ping::list.size() << " " << ping::list.max_size() << std::endl;
+        } else {
+            for(int i = arrayLength; i >= 1; i--){
+                ping::list[i] = ping::list[i-1];
+            }
+            ping::list[0] = value;
         }
+    }
 
-        return highest;
+    inline int get(int value){
+        return ping::list.at(value);
+    }
+
+    inline void display(){
+        std::cout << "Ping List: " << std::endl;
+        for(const int &ping : ping::list){
+            std::cout << ping << " ";
+        }
+        std::cout << std::endl;
     }
 };

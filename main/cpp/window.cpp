@@ -50,14 +50,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
         return 0;
     }
 
-    //Ping Thread
-    const char server[] = "google.com";
-    std::thread pinging (ping::server, server);
-
-    std::string result = ping::server(server);
-    
-    std::cout << "Ping: " << result << std::endl;
-
     ShowWindow(hwnd, nCmdShow);
 
     //Message Loop
@@ -85,11 +77,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
             // All painting occurs here (Between BeginPaint and EndPaint)
             const char server[] = "google.com";
-            std::thread pinging (ping::server, server);
+            // std::thread pinging (ping::repeat, server);
 
-            std::string result = ping::server(server);
+            int result = ping::once(server);
             
-            std::cout << "Ping: " << result << std::endl;
+            ping::display();
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
 
