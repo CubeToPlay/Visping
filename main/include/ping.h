@@ -17,6 +17,30 @@
 namespace ping {
     static std::array<int, arrayLength> list;
 
+    inline int get(int value){
+        return ping::list.at(value);
+    }
+
+    inline void insert(int value){
+        if (ping::list.size() < ping::list.max_size()){
+            ping::list[ping::list.size()] = value;
+            // std::cout << ping::list.size() << " " << ping::list.max_size() << std::endl;
+        } else {
+            for(int i = arrayLength; i >= 1; i--){
+                ping::list[i] = ping::list[i-1];
+            }
+            ping::list[0] = value;
+        }
+    }
+
+    inline void display(){
+        std::cout << "Ping List: " << std::endl;
+        for(const int &ping : ping::list){
+            std::cout << ping << " ";
+        }
+        std::cout << std::endl;
+    }
+
     inline std::string server(const char* server){
         std::array<char, 128> buffer;
         std::string result;
@@ -73,31 +97,7 @@ namespace ping {
 
     inline int repeat(const char* server){
         do {
-            ping::once(server);
+            ping::insert(ping::once(server));
         } while (true);
-    }
-
-    inline void insert(int value){
-        if (ping::list.size() < ping::list.max_size()){
-            ping::list[ping::list.size()] = value;
-            // std::cout << ping::list.size() << " " << ping::list.max_size() << std::endl;
-        } else {
-            for(int i = arrayLength; i >= 1; i--){
-                ping::list[i] = ping::list[i-1];
-            }
-            ping::list[0] = value;
-        }
-    }
-
-    inline int get(int value){
-        return ping::list.at(value);
-    }
-
-    inline void display(){
-        std::cout << "Ping List: " << std::endl;
-        for(const int &ping : ping::list){
-            std::cout << ping << " ";
-        }
-        std::cout << std::endl;
     }
 };

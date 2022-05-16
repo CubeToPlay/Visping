@@ -77,10 +77,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
             // All painting occurs here (Between BeginPaint and EndPaint)
             const char server[] = "google.com";
-            // std::thread pinging (ping::repeat, server);
+            std::thread pinging (ping::repeat, server);
+            pinging.detach();
 
-            int result = ping::once(server);
-            
             ping::display();
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
