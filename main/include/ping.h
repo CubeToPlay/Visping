@@ -74,6 +74,12 @@ namespace ping {
     inline int once(const char* server){
         std::string result = ping::server(server);
 
+        // std::cout << result << std::endl;
+
+        if (result.find("Average = ") == std::string::npos){
+            return 0;
+        }
+
         const std::string searchBegin = "Average = ";
         int locationBegin = result.find(searchBegin);
 
@@ -88,16 +94,62 @@ namespace ping {
     }
 
     inline void display(){
-        std::cout << "Ping List: " << std::endl;
-        for(const int &ping : ping::list){
-            std::cout << ping << " ";
-        }
-        std::cout << std::endl;
+        if (ping::list[0] == 0){
+            std::cout << "Lost Connection!" << std::endl;
+        } else {
+            // std::cout << "Ping List: " << std::endl;
+            // for(const int &ping : ping::list){
+            //     std::cout << ping << " ";
+            // }
+            // std::cout << std::endl;
+            
+            // std::cout << "Ping Average: " << std::endl;
+            // std::cout << ping::average() << std::endl;
 
-        std::cout << "Ping Average: " << std::endl;
-        std::cout << ping::average() << std::endl;
-         
-        std::cout << "Ping Highest: " << std::endl;
-        std::cout << ping::highest() << std::endl;
+
+            std::cout << ping::list[0] << std::endl;
+            
+
+            // std::cout << "Ping Highest: " << std::endl;
+            // std::cout << ping::highest() << std::endl;
+        }
+    }
+
+    inline void draw(HDC& hdc, int width, int height){
+        std::cout << "Pass" << std::endl;
+
+        int center = std::round(width/2);
+
+        // RECT rect;
+        // rect.top     = 0;
+        // rect.right   = 0;
+        // rect.bottom  = height;
+        // rect.left    = width;
+
+        // FillRect(hdc, &rect, (HBRUSH) (COLOR_WINDOW));
+
+        TRIVERTEX vertex[2];
+        vertex[0].y     = 0;
+        vertex[0].x     = 0;
+        vertex[0].Red   = 0xffff;
+        vertex[0].Blue  = 0;
+        vertex[0].Green = 0;
+        vertex[0].Alpha = 0;
+
+        vertex[1].y     = height;
+        vertex[1].x     = width;
+        vertex[1].Red   = 0;
+        vertex[1].Blue  = 0;
+        vertex[1].Green = 0xffff;
+        vertex[1].Alpha = 0;
+
+        GRADIENT_RECT grect;
+        grect.UpperLeft = 0;
+        grect.LowerRight = 1;
+
+        GradientFill(hdc, vertex, 2, &grect, 1, GRADIENT_FILL_RECT_V);
+
+        MoveToEx(hdc, 0, 0, NULL);
+        LineTo(hdc, 10, 100);
     }
 };

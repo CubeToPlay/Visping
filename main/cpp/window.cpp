@@ -2,9 +2,11 @@
 #define UNICODE
 #endif 
 
-#include <iostream>
+#define WIDTH 500
+#define HEIGHT 200
 
 #include <windows.h>
+#include <wingdi.h>
 
 #include "ping.h"
 
@@ -18,6 +20,7 @@ DWORD WINAPI PingingThread(LPVOID lpParam);
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow){
     //Creates the Window Class (Windows Class is not the same as c++ classes)
     const wchar_t CLASS_NAME[] = L"Sample Window Class";//An array of characters.
+    // const int WIDTH = 
 
     if (hInstance == NULL){
         hInstance = (HINSTANCE)GetModuleHandle(NULL);
@@ -56,11 +59,11 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
-        L"Windows Application",    // Window text
+        L"Visping",    // Window text
         WS_OVERLAPPEDWINDOW,            // Window style
 
         // Size and position
-        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+        CW_USEDEFAULT, CW_USEDEFAULT, WIDTH, HEIGHT,
 
         NULL,       // Parent window    
         NULL,       // Menu
@@ -78,6 +81,8 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
     HANDLE PingingThreadHandle = CreateThread(0, 0, PingingThread, 0, 0, &PingingThreadID);
     CloseHandle(PingingThreadHandle);
 
+    std::cout << "Pinging Thread ID: " << PingingThreadID << std::endl;
+
     ShowWindow(hwnd, nCmdShow);
 
     //Message Loop
@@ -92,13 +97,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 
 //Window Proc Function
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
-    // const char server[] = "google.com";
-
-    // std::thread pingingThread(ping::once, server);
-    // pingingThread.detach();
-
-    // ping::insert(ping::once(server));
-
     switch (uMsg)
     {
     case WM_DESTROY: 
@@ -109,10 +107,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
-
             // All painting occurs here (Between BeginPaint and EndPaint)
-
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
+
+            
+            
+            ping::draw(hdc, WIDTH, HEIGHT);
 
             EndPaint(hwnd, &ps);
         }
