@@ -5,29 +5,52 @@
 #include <iostream>
 
 #include <windows.h>
-#include <thread>
-// #include <string>
 
 #include "ping.h"
 
 //Defines the way the user interacts with the window.
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+//Pinging Thread
+DWORD WINAPI PingingThread(LPVOID lpParam);
+
 //Like Main, but for windows.
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow){
     //Creates the Window Class (Windows Class is not the same as c++ classes)
     const wchar_t CLASS_NAME[] = L"Sample Window Class";//An array of characters.
 
-    WNDCLASS wc = {};
+    if (hInstance == NULL){
+        hInstance = (HINSTANCE)GetModuleHandle(NULL);
+    }
 
-    wc.lpfnWndProc   = WindowProc;
-    wc.hInstance     = hInstance;
-    wc.lpszClassName = CLASS_NAME;
+    WCHAR szExePath[MAX_PATH];
+    GetModuleFileName(NULL, szExePath, MAX_PATH);
+
+    HICON hIcon = NULL;
+    //If hIcon is Null, it uses the first one found in the exe.
+    if (hIcon == NULL){
+        hIcon = ExtractIcon(hInstance, szExePath, 0);
+    }
 
     //Registers the Window Class.
-    RegisterClass(&wc);
+    WNDCLASS wc;
+    wc.style         = CS_DBLCLKS;
+    wc.lpfnWndProc   = WindowProc;
+    wc.cbClsExtra    = 0;
+    wc.cbWndExtra    = 0;
+    wc.hInstance     = hInstance;
+    wc.hIcon         = hIcon;
+    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    wc.lpszMenuName  = NULL;
+    wc.lpszClassName = CLASS_NAME;
 
-
+    if(!RegisterClass(&wc)){
+        DWORD dwError = GetLastError();
+        if (dwError != ERROR_CLASS_ALREADY_EXISTS){
+            return HRESULT_FROM_WIN32(dwError);
+        }
+    }
 
     //Creating the Window Instance
     HWND hwnd = CreateWindowEx(
@@ -45,10 +68,15 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
         NULL        // Additional application data
     );
 
+
     //If creating the Window Fails, it quits the program
     if (hwnd == NULL){
         return 0;
     }
+
+    DWORD PingingThreadID;
+    HANDLE PingingThreadHandle = CreateThread(0, 0, PingingThread, 0, 0, &PingingThreadID);
+    CloseHandle(PingingThreadHandle);
 
     ShowWindow(hwnd, nCmdShow);
 
@@ -64,6 +92,13 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 
 //Window Proc Function
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+    // const char server[] = "google.com";
+
+    // std::thread pingingThread(ping::once, server);
+    // pingingThread.detach();
+
+    // ping::insert(ping::once(server));
+
     switch (uMsg)
     {
     case WM_DESTROY: 
@@ -76,11 +111,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
             HDC hdc = BeginPaint(hwnd, &ps);
 
             // All painting occurs here (Between BeginPaint and EndPaint)
-            const char server[] = "google.com";
-            std::thread pinging (ping::repeat, server);
-            pinging.detach();
-
-            ping::display();
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW + 1));
 
@@ -89,5 +119,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
         return 0;
         
     }
+
     return DefWindowProc(hwnd, uMsg, wParam, lParam); // Runs the default action for the message (Varies baised on message.)
+};
+
+//Pinging Loop Function
+DWORD WINAPI PingingThread(LPVOID lpParam){
+    const char server[] = "google.com";
+    
+    while (true) {
+        ping::insert(ping::once(server));
+        ping::display();
+    };
+
+    return 0;
 };

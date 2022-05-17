@@ -33,14 +33,6 @@ namespace ping {
         }
     }
 
-    inline void display(){
-        std::cout << "Ping List: " << std::endl;
-        for(const int &ping : ping::list){
-            std::cout << ping << " ";
-        }
-        std::cout << std::endl;
-    }
-
     inline std::string server(const char* server){
         std::array<char, 128> buffer;
         std::string result;
@@ -95,9 +87,17 @@ namespace ping {
         return stoi(result);
     }
 
-    inline int repeat(const char* server){
-        do {
-            ping::insert(ping::once(server));
-        } while (true);
+    inline void display(){
+        std::cout << "Ping List: " << std::endl;
+        for(const int &ping : ping::list){
+            std::cout << ping << " ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "Ping Average: " << std::endl;
+        std::cout << ping::average() << std::endl;
+         
+        std::cout << "Ping Highest: " << std::endl;
+        std::cout << ping::highest() << std::endl;
     }
 };
