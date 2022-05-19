@@ -7,7 +7,6 @@
 
 #define WIDTH 500
 #define HEIGHT 250
-#define CENTER round(WIDTH/2)
 
 HWND MainHWND;
 
@@ -56,7 +55,7 @@ HRESULT App::Initialize(){
         m_hwnd = CreateWindow(
             CLASS_NAME,
             L"Visping",
-            WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+            WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
             WIDTH,
@@ -75,9 +74,6 @@ HRESULT App::Initialize(){
             ShowWindow(m_hwnd, SW_SHOWNORMAL);
             UpdateWindow(m_hwnd);
         }
-
-        D2D1_GRADIENT_STOP gradentStops[2];
-        gradentStops->position =
 
         DWORD PingingThreadID;
         HANDLE PingingThreadHandle = CreateThread(0, 0, App::PingingThread, 0, 0, &PingingThreadID);
@@ -142,31 +138,30 @@ HRESULT App::CreateDeviceResources(){
             &m_pRenderTarget
         );
 
+        
 
-        // Use the render target to create a gray ID2D1SolidColorBrush and a cornflower blue ID2D1SolidColorBrush.
-        if (SUCCEEDED(hr)){
-            // Create a gray brush.
-            hr = m_pRenderTarget->CreateSolidColorBrush(
-                D2D1::ColorF(D2D1::ColorF::LightSlateGray),
-                &m_pLightSlateGrayBrush
-            );
-        }
+        D2D1_GRADIENT_STOP gradentStops[2];
+        gradentStops[0].position = 0;
+        gradentStops[0].color = D2D1::ColorF(D2D1::ColorF::Red, 1);
+        gradentStops[1].position = 1;
+        gradentStops[1].color = D2D1::ColorF(D2D1::ColorF::Green, 1);
 
-        if (SUCCEEDED(hr)){
-            // Create a blue brush.
-            hr = m_pRenderTarget->CreateSolidColorBrush(
-                D2D1::ColorF(D2D1::ColorF::CornflowerBlue),
-                &m_pCornflowerBlueBrush
-            );
-        }
+        hr = m_pRenderTarget->CreateGradientStopCollection(
+            gradentStops,
+            2,
+            D2D1_GAMMA_2_2,
+            D2D1_EXTEND_MODE_CLAMP,
+            &pGradentStops
+        );
 
+        // Create Brushes
         if (SUCCEEDED(hr)){
             // Create linear gradent brush.
             hr = m_pRenderTarget->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
-                    D2D1::Point2F(CENTER, 0),
-                    D2D1::Point2F(CENTER, HEIGHT)),
-                ,
+                    D2D1::Point2F(rc.right/2, 0),
+                    D2D1::Point2F(rc.right/2, rc.bottom)),
+                pGradentStops,
                 &m_pLinearGradientBrush
             );
         }
@@ -178,8 +173,6 @@ HRESULT App::CreateDeviceResources(){
 // Release the render target and the two brushes you created.
 void App::DiscardDeviceResources(){
     SafeRelease(&m_pRenderTarget);
-    SafeRelease(&m_pLightSlateGrayBrush);
-    SafeRelease(&m_pCornflowerBlueBrush);
     SafeRelease(&m_pLinearGradientBrush);
 }
 
@@ -279,44 +272,16 @@ HRESULT App::OnRender()
         int width = static_cast<int>(rtSize.width);
         int height = static_cast<int>(rtSize.height);
 
-        for (int x = 0; x < width; x += 10) {
-            m_pRenderTarget->DrawLine(
-                D2D1::Point2F(static_cast<FLOAT>(x), 0.0f),
-                D2D1::Point2F(static_cast<FLOAT>(x), rtSize.height),
-                m_pLightSlateGrayBrush,
-                0.5f
-            );
-        }
-
-        for (int y = 0; y < height; y += 10) {
-            m_pRenderTarget->DrawLine(
-                D2D1::Point2F(0.0f, static_cast<FLOAT>(y)),
-                D2D1::Point2F(rtSize.width, static_cast<FLOAT>(y)),
-                m_pLightSlateGrayBrush,
-                0.5f
-            );
-        }
-
         // Draw two rectangles.
-        D2D1_RECT_F rectangle1 = D2D1::RectF(
-            rtSize.width/2 - 50.0f,
-            rtSize.height/2 - 50.0f,
-            rtSize.width/2 + 50.0f,
-            rtSize.height/2 + 50.0f
-        );
-
-        D2D1_RECT_F rectangle2 = D2D1::RectF(
-            rtSize.width/2 - 100.0f,
-            rtSize.height/2 - 100.0f,
-            rtSize.width/2 + 100.0f,
-            rtSize.height/2 + 100.0f
+        D2D1_RECT_F background = D2D1::RectF(
+            width,
+            height,
+            0,
+            0
         );
 
         // Draw a filled rectangle.
-        m_pRenderTarget->FillRectangle(&rectangle1, m_pLightSlateGrayBrush);
-
-        // Draw the outline of a rectangle.
-        m_pRenderTarget->DrawRectangle(&rectangle2, m_pCornflowerBlueBrush);
+        m_pRenderTarget->FillRectangle(&background, m_pLinearGradientBrush);
 
         // Call the render target's EndDraw method.
         hr = m_pRenderTarget->EndDraw();

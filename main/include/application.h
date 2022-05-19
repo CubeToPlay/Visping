@@ -91,11 +91,9 @@ private:
     HWND m_hwnd;
     ID2D1Factory* m_pDirect2dFactory;
     ID2D1HwndRenderTarget* m_pRenderTarget;
-    ID2D1SolidColorBrush* m_pLightSlateGrayBrush;
-    ID2D1SolidColorBrush* m_pCornflowerBlueBrush;
     ID2D1LinearGradientBrush* m_pLinearGradientBrush;
 
-    ID2D1GradientStopCollection* m_pGradentStops;
+    ID2D1GradientStopCollection* pGradentStops;
 };
 
 // Constructor initialize its members to NULL
@@ -103,15 +101,12 @@ App::App() :
     m_hwnd(NULL),
     m_pDirect2dFactory(NULL),
     m_pRenderTarget(NULL),
-    m_pLightSlateGrayBrush(NULL),
-    m_pCornflowerBlueBrush(NULL),
-    m_pGradentStops(NULL)
+    m_pLinearGradientBrush(NULL),
+    pGradentStops(NULL)
 {}
 
 // Destructor release any interfaces stored as class members
 App::~App(){
     SafeRelease(&m_pDirect2dFactory);
     SafeRelease(&m_pRenderTarget);
-    SafeRelease(&m_pLightSlateGrayBrush);
-    SafeRelease(&m_pCornflowerBlueBrush);
 }
