@@ -12,7 +12,10 @@
                 "-I",
                 "${workspaceFolder}\\main\\include",
                 "-lgdi32",
-                "-lmsimg32"
+                "-lmsimg32",
+                "-lole32",
+                "-loleaut32",
+                "-ld2d1"
             ],
             "options": {
                 "cwd": "${fileDirname}"
