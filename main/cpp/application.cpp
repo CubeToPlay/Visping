@@ -306,7 +306,7 @@ HRESULT App::OnRender()
                 D2D1::Point2F(width - (i-1) * lineSpacing, height - vpg::list[i-1]),
                 D2D1::Point2F(width - (i) * lineSpacing, height - vpg::list[i]),
                 m_pBlackBrush,
-                0.5f
+                1.0f
             );
         }
 
@@ -314,14 +314,21 @@ HRESULT App::OnRender()
             D2D1::Point2F(0, height - vpg::average()),
             D2D1::Point2F(width, height - vpg::average()),
             m_pBlackBrush,
-            0.75f
+            1.0f
         );
 
         m_pRenderTarget->DrawLine(
             D2D1::Point2F(0, height - vpg::highest()),
             D2D1::Point2F(width, height - vpg::highest()),
             m_pBlackBrush,
-            0.75f
+            1.0f
+        );
+
+        m_pRenderTarget->DrawLine(
+            D2D1::Point2F(0, height - vpg::lowest()),
+            D2D1::Point2F(width, height - vpg::lowest()),
+            m_pBlackBrush,
+            1.0f
         );
 
         // Call the render target's EndDraw method.
@@ -347,7 +354,7 @@ void App::OnResize(UINT width, UINT height){
 
 // Pinging Loop Function
 DWORD WINAPI App::PingingThread(LPVOID lpParam){
-    const char server[] = "google.com";
+    const char server[] = "8.8.8.8";
     
     while (true) {
         vpg::insert(vpg::once(server));

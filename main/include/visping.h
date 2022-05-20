@@ -13,6 +13,9 @@
 #include <vector>
 #include <ctime>
 
+#define goodPing 60
+#define slowPing 90
+
 #define arrayLength 20
 #define disconnected -1
 
@@ -73,6 +76,20 @@ namespace vpg {
         return highest;
     }
 
+    inline int lowest(){
+        int lowest = vpg::highest();
+
+        for(const int &ping : vpg::list){
+            if (ping < lowest){lowest = ping;}
+        }
+
+        return lowest;
+    }
+
+    inline int stablitiy(){
+        return vpg::average() - vpg::lowest();
+    }
+
     inline int once(const char* server){
         std::string result = vpg::server(server);
 
@@ -99,7 +116,8 @@ namespace vpg {
         if (vpg::list[0] == disconnected){
             std::cout << "Lost Connection!" << std::endl;
         } else {
-            std::cout << vpg::list[0] << std::endl;
+            // std::cout << vpg::list[0] << std::endl;
+            std::cout << vpg::stablitiy() << std::endl;
         }
     }
 };
