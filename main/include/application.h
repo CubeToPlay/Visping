@@ -91,6 +91,7 @@ private:
     HWND m_hwnd;
     ID2D1Factory* m_pDirect2dFactory;
     ID2D1HwndRenderTarget* m_pRenderTarget;
+    ID2D1SolidColorBrush* m_pBlackBrush;
     ID2D1LinearGradientBrush* m_pLinearGradientBrush;
 
     ID2D1GradientStopCollection* pGradentStops;
@@ -102,6 +103,7 @@ App::App() :
     m_pDirect2dFactory(NULL),
     m_pRenderTarget(NULL),
     m_pLinearGradientBrush(NULL),
+    m_pBlackBrush(NULL),
     pGradentStops(NULL)
 {}
 

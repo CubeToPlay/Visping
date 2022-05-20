@@ -14,6 +14,7 @@
 #include <ctime>
 
 #define arrayLength 20
+#define disconnected -1
 
 namespace vpg {
     static std::array<int, arrayLength> list;
@@ -78,7 +79,7 @@ namespace vpg {
         // std::cout << result << std::endl;
 
         if (result.find("Average = ") == std::string::npos){
-            return 0;
+            return disconnected;
         }
 
         const std::string searchBegin = "Average = ";
@@ -95,28 +96,10 @@ namespace vpg {
     }
 
     inline void display(){
-        if (vpg::list[0] == 0){
+        if (vpg::list[0] == disconnected){
             std::cout << "Lost Connection!" << std::endl;
         } else {
-            // std::cout << "Ping List: " << std::endl;
-            // for(const int &ping : vpg::list){
-            //     std::cout << ping << " ";
-            // }
-            // std::cout << std::endl;
-            
-            // std::cout << "Ping Average: " << std::endl;
-            // std::cout << ping::average() << std::endl;
-
-
             std::cout << vpg::list[0] << std::endl;
-            
-
-            // std::cout << "Ping Highest: " << std::endl;
-            // std::cout << ping::highest() << std::endl;
         }
-    }
-
-    inline void draw(ID2D1HwndRenderTarget* renderTarget){
-        
     }
 };

@@ -6,7 +6,7 @@
 #include "visping.h"
 
 #define WIDTH 500
-#define HEIGHT 250
+#define HEIGHT 200
 
 HWND MainHWND;
 
@@ -23,6 +23,14 @@ void App::RunMessageLoop(){
 // Creates the window, shows it, and calls the App::CreateDeviceIndependentResources method
 HRESULT App::Initialize(){
     const wchar_t CLASS_NAME[] = L"Visping Window Class";//An array of characters.
+
+    RECT wr;
+    wr.top = 0;
+    wr.left = 0;
+    wr.bottom = HEIGHT;
+    wr.right = WIDTH;
+
+    AdjustWindowRect(&wr, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME, FALSE);
 
     HRESULT hr;
     // Initialize device-indpendent resources, such as the Direct2D factory.
@@ -58,8 +66,8 @@ HRESULT App::Initialize(){
             WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
-            WIDTH,
-            HEIGHT,
+            wr.right - wr.left,
+            wr.bottom - wr.top,
             NULL,
             NULL,
             HINST_THISCOMPONENT,
@@ -99,6 +107,7 @@ INT WINAPI WinMain(
             App app;
 
             if (SUCCEEDED(app.Initialize())) {
+                // AdjustWindowRect()
                 app.RunMessageLoop();
             }
         }
@@ -138,13 +147,12 @@ HRESULT App::CreateDeviceResources(){
             &m_pRenderTarget
         );
 
-        
-
+        // Create gradent stops
         D2D1_GRADIENT_STOP gradentStops[2];
         gradentStops[0].position = 0;
-        gradentStops[0].color = D2D1::ColorF(D2D1::ColorF::Red, 1);
+        gradentStops[0].color = D2D1::ColorF(D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f));
         gradentStops[1].position = 1;
-        gradentStops[1].color = D2D1::ColorF(D2D1::ColorF::Green, 1);
+        gradentStops[1].color = D2D1::ColorF(D2D1::ColorF(0.0f, 1.0f, 0.0f, 1.0f));
 
         hr = m_pRenderTarget->CreateGradientStopCollection(
             gradentStops,
@@ -165,6 +173,14 @@ HRESULT App::CreateDeviceResources(){
                 &m_pLinearGradientBrush
             );
         }
+
+        if (SUCCEEDED(hr)){
+            // Create a black brush.
+            hr = m_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(D2D1::ColorF::Black),
+                &m_pBlackBrush
+            );
+        }
     }
 
     return hr;
@@ -174,6 +190,7 @@ HRESULT App::CreateDeviceResources(){
 void App::DiscardDeviceResources(){
     SafeRelease(&m_pRenderTarget);
     SafeRelease(&m_pLinearGradientBrush);
+    SafeRelease(&m_pBlackBrush);
 }
 
 // Implement the windows procedure, the OnRender method that paints content, and the OnResize method that adjusts the size of the render target when the window is resized.
@@ -263,25 +280,49 @@ HRESULT App::OnRender()
 
         m_pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
 
-        vpg::draw(m_pRenderTarget);
-
         // Retrieve the size of the drawing area.
         D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
 
-        // Draw a grid background.
+        // Draw a background.
         int width = static_cast<int>(rtSize.width);
         int height = static_cast<int>(rtSize.height);
 
-        // Draw two rectangles.
+        // Draw background rectangle.
         D2D1_RECT_F background = D2D1::RectF(
-            width,
-            height,
             0,
-            0
+            0,
+            width,
+            height
         );
 
         // Draw a filled rectangle.
         m_pRenderTarget->FillRectangle(&background, m_pLinearGradientBrush);
+
+        // Draw the ping.
+        float lineSpacing = width/arrayLength;
+
+        for(int i = arrayLength; i >= 1; i--){
+            m_pRenderTarget->DrawLine(
+                D2D1::Point2F(width - (i-1) * lineSpacing, height - vpg::list[i-1]),
+                D2D1::Point2F(width - (i) * lineSpacing, height - vpg::list[i]),
+                m_pBlackBrush,
+                0.5f
+            );
+        }
+
+        m_pRenderTarget->DrawLine(
+            D2D1::Point2F(0, height - vpg::average()),
+            D2D1::Point2F(width, height - vpg::average()),
+            m_pBlackBrush,
+            0.75f
+        );
+
+        m_pRenderTarget->DrawLine(
+            D2D1::Point2F(0, height - vpg::highest()),
+            D2D1::Point2F(width, height - vpg::highest()),
+            m_pBlackBrush,
+            0.75f
+        );
 
         // Call the render target's EndDraw method.
         hr = m_pRenderTarget->EndDraw();
