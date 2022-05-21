@@ -15,7 +15,8 @@
                 "-lmsimg32",
                 "-lole32",
                 "-loleaut32",
-                "-ld2d1"
+                "-ld2d1",
+                "-lDwrite"
             ],
             "options": {
                 "cwd": "${fileDirname}"

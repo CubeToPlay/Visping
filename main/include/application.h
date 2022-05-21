@@ -17,6 +17,10 @@
 #include <dwrite.h>
 #include <wincodec.h>
 
+#include <uxtheme.h>
+#include <vssym32.h>
+#include <stdbool.h>
+
 
 // Declare additional functions for releasing interfaces and macros for error handling and retrieving the module's base address.
 template<class Interface>
@@ -91,10 +95,15 @@ private:
     HWND m_hwnd;
     ID2D1Factory* m_pDirect2dFactory;
     ID2D1HwndRenderTarget* m_pRenderTarget;
+
     ID2D1SolidColorBrush* m_pBlackBrush;
+    ID2D1SolidColorBrush* m_pWhiteBrush;
     ID2D1LinearGradientBrush* m_pLinearGradientBrush;
 
-    ID2D1GradientStopCollection* pGradentStops;
+    IDWriteFactory* m_pWriteTarget;
+    IDWriteTextFormat* m_pTextFormat;
+
+    ID2D1GradientStopCollection* m_pGradentStops;
 };
 
 // Constructor initialize its members to NULL
@@ -103,8 +112,13 @@ App::App() :
     m_pDirect2dFactory(NULL),
     m_pRenderTarget(NULL),
     m_pLinearGradientBrush(NULL),
+
+    m_pWhiteBrush(NULL),
     m_pBlackBrush(NULL),
-    pGradentStops(NULL)
+
+    m_pWriteTarget(NULL),
+    m_pTextFormat(NULL),
+    m_pGradentStops(NULL)
 {}
 
 // Destructor release any interfaces stored as class members

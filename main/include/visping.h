@@ -117,7 +117,25 @@ namespace vpg {
             std::cout << "Lost Connection!" << std::endl;
         } else {
             // std::cout << vpg::list[0] << std::endl;
-            std::cout << vpg::stablitiy() << std::endl;
+            std::cout << vpg::average() << std::endl;
+            // std::cout << vpg::stablitiy() << std::endl;
         }
+    }
+
+    inline std::string string(){
+        std::string fullString;
+        std::string insertString;
+
+        // for(const int &ping : vpg::list){
+        //     insertString = std::to_string(ping) + " ";
+        //     fullString.append(insertString);
+        //     insertString = "";
+        // }
+
+        fullString.append(" Average: " + std::to_string(vpg::average()));
+        fullString.append("\n Highest: " + std::to_string(vpg::highest()));
+        fullString.append("\n Stability: " + std::to_string(vpg::stablitiy()));
+
+        return fullString;
     }
 };

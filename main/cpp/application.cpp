@@ -5,8 +5,11 @@
 #include "application.h"
 #include "visping.h"
 
-#define WIDTH 500
-#define HEIGHT 200
+#define DRAW_WIDTH 500
+#define DRAW_HEIGHT 200
+
+#define CLIENT_WIDTH 500
+#define CLIENT_HEIGHT 300
 
 HWND MainHWND;
 
@@ -22,15 +25,17 @@ void App::RunMessageLoop(){
 
 // Creates the window, shows it, and calls the App::CreateDeviceIndependentResources method
 HRESULT App::Initialize(){
-    const wchar_t CLASS_NAME[] = L"Visping Window Class";//An array of characters.
+    const DWORD DW_STYLE = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME;
+    
+    const wchar_t CLASS_NAME[] = L"Visping Window Class";
 
     RECT wr;
     wr.top = 0;
     wr.left = 0;
-    wr.bottom = HEIGHT;
-    wr.right = WIDTH;
+    wr.bottom = CLIENT_HEIGHT;
+    wr.right = CLIENT_WIDTH;
 
-    AdjustWindowRect(&wr, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME, FALSE);
+    AdjustWindowRect(&wr, DW_STYLE, FALSE);
 
     HRESULT hr;
     // Initialize device-indpendent resources, such as the Direct2D factory.
@@ -63,7 +68,7 @@ HRESULT App::Initialize(){
         m_hwnd = CreateWindow(
             CLASS_NAME,
             L"Visping",
-            WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME,
+            DW_STYLE,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
             wr.right - wr.left,
@@ -79,7 +84,10 @@ HRESULT App::Initialize(){
         hr = m_hwnd ? S_OK : E_FAIL;
         
         if (SUCCEEDED(hr)){
-            ShowWindow(m_hwnd, SW_SHOWNORMAL);
+            // Remove all window styles, check MSDN for details
+            // SetWindowLong(m_hwnd, GWL_STYLE, 0); 
+            // Display window
+            ShowWindow(m_hwnd, SW_SHOW);
             UpdateWindow(m_hwnd);
         }
 
@@ -147,6 +155,14 @@ HRESULT App::CreateDeviceResources(){
             &m_pRenderTarget
         );
 
+        if (SUCCEEDED(hr)) {
+            hr = DWriteCreateFactory(
+                DWRITE_FACTORY_TYPE_SHARED,
+                __uuidof(IDWriteFactory),
+                reinterpret_cast<IUnknown**>(&m_pWriteTarget)
+            );
+        }
+
         // Create gradent stops
         D2D1_GRADIENT_STOP gradentStops[2];
         gradentStops[0].position = 0;
@@ -159,7 +175,7 @@ HRESULT App::CreateDeviceResources(){
             2,
             D2D1_GAMMA_2_2,
             D2D1_EXTEND_MODE_CLAMP,
-            &pGradentStops
+            &m_pGradentStops
         );
 
         // Create Brushes
@@ -167,9 +183,9 @@ HRESULT App::CreateDeviceResources(){
             // Create linear gradent brush.
             hr = m_pRenderTarget->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
-                    D2D1::Point2F(rc.right/2, 0),
-                    D2D1::Point2F(rc.right/2, rc.bottom)),
-                pGradentStops,
+                    D2D1::Point2F(DRAW_WIDTH/2, 0),
+                    D2D1::Point2F(DRAW_WIDTH/2, DRAW_HEIGHT)),
+                m_pGradentStops,
                 &m_pLinearGradientBrush
             );
         }
@@ -177,8 +193,30 @@ HRESULT App::CreateDeviceResources(){
         if (SUCCEEDED(hr)){
             // Create a black brush.
             hr = m_pRenderTarget->CreateSolidColorBrush(
-                D2D1::ColorF(D2D1::ColorF::Black),
+                D2D1::ColorF(D2D1::ColorF(0.0f, 0.0f, 0.0f)),
                 &m_pBlackBrush
+            );
+        }
+
+        if (SUCCEEDED(hr)){
+            // Create a white brush.
+            hr = m_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(D2D1::ColorF(1.0f, 1.0f, 1.0f)),
+                &m_pWhiteBrush
+            );
+        }
+
+        if (SUCCEEDED(hr)){
+            // Create the Text Format.
+            hr = m_pWriteTarget->CreateTextFormat(
+                L"Consolas",
+                NULL,
+                DWRITE_FONT_WEIGHT_REGULAR,
+                DWRITE_FONT_STYLE_NORMAL,
+                DWRITE_FONT_STRETCH_NORMAL,
+                15.0f,
+                L"en-us",
+                &m_pTextFormat
             );
         }
     }
@@ -191,6 +229,10 @@ void App::DiscardDeviceResources(){
     SafeRelease(&m_pRenderTarget);
     SafeRelease(&m_pLinearGradientBrush);
     SafeRelease(&m_pBlackBrush);
+    SafeRelease(&m_pWhiteBrush);
+
+    SafeRelease(&m_pWriteTarget);
+    SafeRelease(&m_pTextFormat);
 }
 
 // Implement the windows procedure, the OnRender method that paints content, and the OnResize method that adjusts the size of the render target when the window is resized.
@@ -280,55 +322,83 @@ HRESULT App::OnRender()
 
         m_pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
 
+        // Ping Properties
+        int averagePing = vpg::average();
+        int highestPing = vpg::highest();
+        int lowestPing = vpg::lowest();
+
         // Retrieve the size of the drawing area.
         D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
 
-        // Draw a background.
-        int width = static_cast<int>(rtSize.width);
-        int height = static_cast<int>(rtSize.height);
-
         // Draw background rectangle.
-        D2D1_RECT_F background = D2D1::RectF(
+        D2D1_RECT_F pingBackground = D2D1::RectF(
             0,
             0,
-            width,
-            height
+            DRAW_WIDTH,
+            DRAW_HEIGHT
         );
 
         // Draw a filled rectangle.
-        m_pRenderTarget->FillRectangle(&background, m_pLinearGradientBrush);
+        m_pRenderTarget->FillRectangle(&pingBackground, m_pLinearGradientBrush);
 
         // Draw the ping.
-        float lineSpacing = width/arrayLength;
+        float lineSpacing = DRAW_WIDTH/arrayLength;
 
         for(int i = arrayLength; i >= 1; i--){
             m_pRenderTarget->DrawLine(
-                D2D1::Point2F(width - (i-1) * lineSpacing, height - vpg::list[i-1]),
-                D2D1::Point2F(width - (i) * lineSpacing, height - vpg::list[i]),
+                D2D1::Point2F(DRAW_WIDTH - (i-1) * lineSpacing, DRAW_HEIGHT - vpg::list[i-1]),
+                D2D1::Point2F(DRAW_WIDTH - (i) * lineSpacing, DRAW_HEIGHT - vpg::list[i]),
                 m_pBlackBrush,
                 1.0f
             );
         }
 
         m_pRenderTarget->DrawLine(
-            D2D1::Point2F(0, height - vpg::average()),
-            D2D1::Point2F(width, height - vpg::average()),
+            D2D1::Point2F(0, DRAW_HEIGHT - averagePing),
+            D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - averagePing),
             m_pBlackBrush,
             1.0f
         );
 
         m_pRenderTarget->DrawLine(
-            D2D1::Point2F(0, height - vpg::highest()),
-            D2D1::Point2F(width, height - vpg::highest()),
+            D2D1::Point2F(0, DRAW_HEIGHT - highestPing),
+            D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - highestPing),
             m_pBlackBrush,
             1.0f
         );
 
         m_pRenderTarget->DrawLine(
-            D2D1::Point2F(0, height - vpg::lowest()),
-            D2D1::Point2F(width, height - vpg::lowest()),
+            D2D1::Point2F(0, DRAW_HEIGHT - lowestPing),
+            D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - lowestPing),
             m_pBlackBrush,
             1.0f
+        );
+
+        D2D1_RECT_F textRect = D2D1::RectF(
+            0,
+            DRAW_HEIGHT,
+            DRAW_WIDTH,
+            CLIENT_HEIGHT
+        );
+
+        std::string pingString = vpg::string();
+        UINT stringSize = pingString.length();
+
+        std::wstring pingWstring(pingString.begin(), pingString.end());
+
+        const wchar_t* pingWchar = pingWstring.c_str();
+        // const wchar_t* pingWchar = L"Average: ";
+
+        // std::cout << pingString << std::endl;
+
+        m_pRenderTarget->DrawTextW(
+            pingWchar,
+            stringSize,
+            m_pTextFormat,
+            &textRect,
+            m_pWhiteBrush,
+            D2D1_DRAW_TEXT_OPTIONS_NO_SNAP,
+            DWRITE_MEASURING_MODE_GDI_CLASSIC
         );
 
         // Call the render target's EndDraw method.
@@ -358,7 +428,7 @@ DWORD WINAPI App::PingingThread(LPVOID lpParam){
     
     while (true) {
         vpg::insert(vpg::once(server));
-        vpg::display();
+        // vpg::display();
         InvalidateRect(MainHWND, NULL, TRUE);
     };
 
