@@ -207,6 +207,30 @@ HRESULT App::CreateDeviceResources(){
         }
 
         if (SUCCEEDED(hr)){
+            // Create a cyan brush.
+            hr = m_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(D2D1::ColorF(0.0f, 1.0f, 1.0f)),
+                &m_pCyanBrush
+            );
+        }
+
+        if (SUCCEEDED(hr)){
+            // Create a yellow brush.
+            hr = m_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(D2D1::ColorF(1.0f, 1.0f, 0.0f)),
+                &m_pYellowBrush
+            );
+        }
+
+        if (SUCCEEDED(hr)){
+            // Create a magenta brush.
+            hr = m_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(D2D1::ColorF(1.0f, 0.0f, 1.0f)),
+                &m_pMagentaBrush
+            );
+        }
+
+        if (SUCCEEDED(hr)){
             // Create the Text Format.
             hr = m_pWriteTarget->CreateTextFormat(
                 L"Consolas",
@@ -228,8 +252,12 @@ HRESULT App::CreateDeviceResources(){
 void App::DiscardDeviceResources(){
     SafeRelease(&m_pRenderTarget);
     SafeRelease(&m_pLinearGradientBrush);
+    
     SafeRelease(&m_pBlackBrush);
     SafeRelease(&m_pWhiteBrush);
+    SafeRelease(&m_pCyanBrush);
+    SafeRelease(&m_pYellowBrush);
+    SafeRelease(&m_pMagentaBrush);
 
     SafeRelease(&m_pWriteTarget);
     SafeRelease(&m_pTextFormat);
@@ -322,11 +350,6 @@ HRESULT App::OnRender()
 
         m_pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
 
-        // Ping Properties
-        int averagePing = vpg::average();
-        int highestPing = vpg::highest();
-        int lowestPing = vpg::lowest();
-
         // Retrieve the size of the drawing area.
         D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
 
@@ -343,11 +366,18 @@ HRESULT App::OnRender()
 
         // Draw the ping.
         float lineSpacing = DRAW_WIDTH/arrayLength;
+        float amplification = 1;
+        float offset = DRAW_HEIGHT/4;
+
+        // Ping Properties
+        int averagePing = vpg::average() * amplification;
+        int highestPing = vpg::highest() * amplification;
+        int lowestPing = vpg::lowest() * amplification;
 
         for(int i = arrayLength; i >= 1; i--){
             m_pRenderTarget->DrawLine(
-                D2D1::Point2F(DRAW_WIDTH - (i-1) * lineSpacing, DRAW_HEIGHT - vpg::list[i-1]),
-                D2D1::Point2F(DRAW_WIDTH - (i) * lineSpacing, DRAW_HEIGHT - vpg::list[i]),
+                D2D1::Point2F(DRAW_WIDTH - (i-1) * lineSpacing, DRAW_HEIGHT - vpg::list[i-1] * amplification),
+                D2D1::Point2F(DRAW_WIDTH - (i) * lineSpacing, DRAW_HEIGHT - vpg::list[i] * amplification),
                 m_pBlackBrush,
                 1.0f
             );
@@ -356,23 +386,23 @@ HRESULT App::OnRender()
         m_pRenderTarget->DrawLine(
             D2D1::Point2F(0, DRAW_HEIGHT - averagePing),
             D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - averagePing),
-            m_pBlackBrush,
-            1.0f
+            m_pCyanBrush,
+            1.5f
         );
 
         m_pRenderTarget->DrawLine(
             D2D1::Point2F(0, DRAW_HEIGHT - highestPing),
             D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - highestPing),
-            m_pBlackBrush,
-            1.0f
+            m_pYellowBrush,
+            1.5f
         );
 
-        m_pRenderTarget->DrawLine(
-            D2D1::Point2F(0, DRAW_HEIGHT - lowestPing),
-            D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - lowestPing),
-            m_pBlackBrush,
-            1.0f
-        );
+        // m_pRenderTarget->DrawLine(
+        //     D2D1::Point2F(0, DRAW_HEIGHT - lowestPing),
+        //     D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - lowestPing),
+        //     m_pMagentaBrush,
+        //     1.5f
+        // );
 
         D2D1_RECT_F textRect = D2D1::RectF(
             0,

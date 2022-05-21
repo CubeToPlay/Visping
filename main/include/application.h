@@ -98,6 +98,9 @@ private:
 
     ID2D1SolidColorBrush* m_pBlackBrush;
     ID2D1SolidColorBrush* m_pWhiteBrush;
+    ID2D1SolidColorBrush* m_pCyanBrush;
+    ID2D1SolidColorBrush* m_pYellowBrush;
+    ID2D1SolidColorBrush* m_pMagentaBrush;
     ID2D1LinearGradientBrush* m_pLinearGradientBrush;
 
     IDWriteFactory* m_pWriteTarget;
@@ -115,6 +118,9 @@ App::App() :
 
     m_pWhiteBrush(NULL),
     m_pBlackBrush(NULL),
+    m_pCyanBrush(NULL),
+    m_pYellowBrush(NULL),
+    m_pMagentaBrush(NULL),
 
     m_pWriteTarget(NULL),
     m_pTextFormat(NULL),
