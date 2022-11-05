@@ -16,7 +16,6 @@
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
-HWND main_hwnd;
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
@@ -79,11 +78,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //  PURPOSE: 
 //
 DWORD WINAPI PingingThread(LPVOID lpParam) {
+    static int val;
+
     std::string server = "8.8.8.8";
 
     while (true) {
-        ping_server(server);
-        InvalidateRect(main_hwnd, NULL, TRUE);
+        //ping_server(server);
+        insert(val);
+        val++;
+        InvalidateRect(m_hwnd, NULL, TRUE);
     };
 
     return 0;
@@ -168,8 +171,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
         {
             return FALSE;
         }
-
-        main_hwnd = m_hwnd;
 
         AdjustWindowRect(&wr, DW_STYLE, FALSE);
 
@@ -494,9 +495,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // Parse the menu selections:
         switch (wmId)
         {
-        case IDM_ABOUT:
-            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-            break;
         case IDM_EXIT:
             DestroyWindow(hWnd);
             break;
@@ -524,25 +522,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);
-}
-
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
 }
