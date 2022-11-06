@@ -83,41 +83,13 @@ DWORD WINAPI PingingThread(LPVOID lpParam) {
     std::string server = "8.8.8.8";
 
     while (true) {
-        //ping_server(server);
-        insert(val);
-        val++;
+        ping_server(server);
+        //insert(val);
+        //val++;
         InvalidateRect(m_hwnd, NULL, TRUE);
     };
 
     return 0;
-}
-
-
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-    WNDCLASSEXW wcex;
-
-    wcex.cbSize = sizeof(WNDCLASSEX);
-
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_VISPING));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_VISPING);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-    return RegisterClassExW(&wcex);
 }
 
 
@@ -185,15 +157,113 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
         //PingingThread(lparam);
         
-        //DWORD PingingThreadID;
-        //HANDLE PingingThreadHandle = CreateThread(0, 0, PingingThread, 0, 0, &PingingThreadID);
-        //CloseHandle(PingingThreadHandle);
+        DWORD PingingThreadID;
+        HANDLE PingingThreadHandle = CreateThread(0, 0, PingingThread, 0, 0, &PingingThreadID);
+        CloseHandle(PingingThreadHandle);
     }
 
     return TRUE;
 }
 
 
+
+//
+//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
+//
+//  PURPOSE: Processes messages for the main window.
+//
+//  WM_COMMAND  - process the application menu
+//  WM_PAINT    - Paint the main window
+//  WM_DESTROY  - post a quit message and return
+//
+//
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+
+    switch (message)
+    {
+
+    case WM_CREATE:
+    {
+    }
+    break;
+
+    case WM_SIZE:
+    {
+        UINT width = LOWORD(lParam);
+        UINT height = HIWORD(lParam);
+        OnResize(width, height);
+    }
+    break;
+
+    case WM_DISPLAYCHANGE:
+    {
+        InvalidateRect(hWnd, NULL, FALSE);
+    }
+    break;
+
+    case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        // Parse the menu selections:
+        switch (wmId)
+        {
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
+    }
+    break;
+
+    case WM_PAINT:
+    {
+        LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
+
+        OnRender();
+        ValidateRect(hWnd, NULL);
+    }
+    break;
+
+    case WM_DESTROY:
+    {
+        PostQuitMessage(0);
+    }
+    break;
+
+    }
+
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+
+
+//
+//  FUNCTION: MyRegisterClass()
+//
+//  PURPOSE: Registers the window class.
+//
+ATOM MyRegisterClass(HINSTANCE hInstance)
+{
+    WNDCLASSEXW wcex;
+
+    wcex.cbSize = sizeof(WNDCLASSEX);
+
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_VISPING));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_VISPING);
+    wcex.lpszClassName = szWindowClass;
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+    return RegisterClassExW(&wcex);
+}
 
 void DiscardDeviceResources()
 {
@@ -380,8 +450,7 @@ HRESULT OnRender()
         m_pRenderTarget->FillRectangle(&pingBackground, m_pLinearGradientBrush);
 
         // Draw the ping.
-        float line_spacing = DRAW_WIDTH / ARRAY_LENGTH;
-        float amplification = 1;
+        float line_spacing = (float)DRAW_WIDTH / (ARRAY_LENGTH - 1);
         float offset = DRAW_HEIGHT / 4;
 
         // Ping Properties
@@ -391,8 +460,8 @@ HRESULT OnRender()
         // Draw
         for (int i(ARRAY_LENGTH - 1); i > 0; i--) {
             m_pRenderTarget->DrawLine(
-                D2D1::Point2F(DRAW_WIDTH - (i - 1) * line_spacing, DRAW_HEIGHT - ping_array[i - 1] * amplification),
-                D2D1::Point2F(DRAW_WIDTH - (i)*line_spacing, DRAW_HEIGHT - ping_array[i] * amplification),
+                D2D1::Point2F(DRAW_WIDTH - (i - 1) * line_spacing, DRAW_HEIGHT - ping_array[i - 1]),
+                D2D1::Point2F(DRAW_WIDTH - (i) * line_spacing, DRAW_HEIGHT - ping_array[i]),
                 m_pBlackBrush,
                 1.0f
             );
@@ -418,6 +487,8 @@ HRESULT OnRender()
             DRAW_WIDTH,
             CLIENT_HEIGHT
         );
+
+        m_pRenderTarget->FillRectangle(&text_rect, m_pBlackBrush);
 
         // Display string
         std::string output_string;
@@ -457,69 +528,4 @@ HRESULT OnRender()
     }
 
     return hr;
-}
-
-
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-
-    case WM_SIZE:
-    {
-        UINT width = LOWORD(lParam);
-        UINT height = HIWORD(lParam);
-        OnResize(width, height);
-    }
-    break;
-
-    case WM_DISPLAYCHANGE:
-    {
-        InvalidateRect(hWnd, NULL, FALSE);
-    }
-    break;
-
-    case WM_COMMAND:
-    {
-        int wmId = LOWORD(wParam);
-        // Parse the menu selections:
-        switch (wmId)
-        {
-        case IDM_EXIT:
-            DestroyWindow(hWnd);
-            break;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
-    }
-    break;
-
-    case WM_PAINT:
-    {
-        LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
-
-        OnRender();
-        ValidateRect(hWnd, NULL);
-    }
-    break;
-
-    case WM_DESTROY:
-    {
-        PostQuitMessage(0);
-    }
-    break;
-
-    }
-
-    return DefWindowProc(hWnd, message, wParam, lParam);
 }

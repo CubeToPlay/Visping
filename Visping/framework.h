@@ -20,11 +20,13 @@
 #include <dwrite.h>
 #include <wincodec.h>
 
+#define MENU_HEIGHT 27
+
 #define DRAW_WIDTH 500
 #define DRAW_HEIGHT 200
 
 #define CLIENT_WIDTH 500
-#define CLIENT_HEIGHT 300
+#define CLIENT_HEIGHT 300 + MENU_HEIGHT*2
 
 
 
