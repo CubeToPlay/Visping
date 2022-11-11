@@ -27,6 +27,9 @@
     <ClInclude Include="Visping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Visping.cpp">
@@ -39,10 +42,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Visping.ico">
+    <Image Include="D:\Pictures\Visping.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "resource.h"
+#include "ping.h"
 
 #include <d2d1.h>
 #include <d2d1helper.h>
@@ -15,7 +16,6 @@
 #define PING_BAD 90
 
 #define ARRAY_LENGTH 20
-#define DISCONNECT_VALUE -1
 
 // Define Array
 std::array <int, ARRAY_LENGTH> ping_array;
@@ -56,39 +56,4 @@ void ping_stats(int& highest, int& lowest, int& average, int& instability) {
     instability = highest - lowest;
 
     average = sum / ARRAY_LENGTH;
-}
-
-// Ping the server once
-void ping_server(std::string server) {
-    // Gets ping data
-    std::string cmd_ping_output, cmd_command("ping -n 1 " + server);
-    std::array<char, 128> buffer;
-
-    FILE* pipe(nullptr);
-    pipe = _popen(cmd_command.c_str(), "r");
-
-    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
-        cmd_ping_output += buffer.data();
-    }
-
-    _pclose(pipe);
-
-    // Analyze output
-    size_t index_begin, index_end;
-    const std::string search_text_begin("Average = "),
-        search_text_end("ms");
-
-    if (cmd_ping_output.find(search_text_begin) == std::string::npos) {
-        insert(DISCONNECT_VALUE);
-    }
-    else
-    {
-        index_begin = cmd_ping_output.find(search_text_begin);
-        cmd_ping_output = cmd_ping_output.erase(0, index_begin + search_text_begin.length());
-
-        index_end = cmd_ping_output.find(search_text_end);
-        cmd_ping_output = cmd_ping_output.erase(index_end, index_end + search_text_end.length());
-
-        insert(std::stoi(cmd_ping_output));
-    }
 }

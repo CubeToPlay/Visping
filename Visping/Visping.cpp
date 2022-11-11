@@ -29,7 +29,6 @@ void DiscardDeviceResources();
 
 void OnResize(UINT width, UINT height);
 
-
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 DWORD WINAPI        PingingThread(LPVOID lpParam);
 
@@ -78,13 +77,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //  PURPOSE: 
 //
 DWORD WINAPI PingingThread(LPVOID lpParam) {
-    static int val;
-
-    std::string server = "8.8.8.8";
-
     while (true) {
-        ping_server(server);
-        //insert(val);
+        insert(ping());
         //val++;
         InvalidateRect(m_hwnd, NULL, TRUE);
     };
@@ -222,6 +216,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
 
         OnRender();
+        //ping();
         ValidateRect(hWnd, NULL);
     }
     break;
