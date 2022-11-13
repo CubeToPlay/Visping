@@ -1,2 +1,2 @@
 # Visping
-A software that displays your ping visually
+A software that displays your ping visually.
