@@ -447,7 +447,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:VispingSetup"
+        "ProductName" = "8:Visping Setup"
         "ProductCode" = "8:{A7FFFCEF-9A97-4F4A-8BDC-4801EABD230D}"
         "PackageCode" = "8:{E50CB058-DF55-465F-ADF1-4F4024962848}"
         "UpgradeCode" = "8:{B80A9BDC-8283-47D4-8EB2-C7F016CB74BA}"
@@ -998,7 +998,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_7F3D0965174847ABB402E183045D74DA"
             {
-            "SourcePath" = "8:..\\x64\\Release\\Visping.exe"
+            "SourcePath" = "8:..\\Release\\Visping.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_9C42793F29E64CC784847438108E53E1"

@@ -141,6 +141,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="D:\Pictures\Visping.ico" />
+    <Image Include="D:\Pictures\Visping.png" />
+    <Image Include="icon1.ico" />
+    <Image Include="Visping.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

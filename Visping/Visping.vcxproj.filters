@@ -45,5 +45,14 @@
     <Image Include="D:\Pictures\Visping.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Visping.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="D:\Pictures\Visping.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

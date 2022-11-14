@@ -17,7 +17,7 @@
 
 
 #define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT "443"
+#define DEFAULT_PORT "53"
 
 #define DISCONNECT_VALUE -1
 
@@ -113,8 +113,8 @@ int ping()
     do {
 
         iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-        if (iResult < 0)
-            printf("recv failed with error: %d\n", WSAGetLastError());
+        //if (iResult < 0)
+        //    printf("recv failed with error: %d\n", WSAGetLastError());
 
     } while (iResult > 0);
 
