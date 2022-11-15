@@ -8,11 +8,14 @@
 #endif 
 
 #include <string>
+#include <thread>
+#include <chrono>
 
 #include "framework.h"
 #include "Visping.h"
 
 #define MAX_LOADSTRING 100
+#define LOOP_DELAY 20
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -79,8 +82,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 DWORD WINAPI PingingThread(LPVOID lpParam) {
     while (true) {
         insert(ping());
-        //val++;
         InvalidateRect(m_hwnd, NULL, TRUE);
+        std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_DELAY));
     };
 
     return 0;

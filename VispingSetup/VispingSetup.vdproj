@@ -15,12 +15,6 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_0FF048FA13B1A98796CB2E2A05AF533F"
-        "OwnerKey" = "8:_7F3D0965174847ABB402E183045D74DA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_11CD19E1D48439D0FFA4279522104E68"
         "OwnerKey" = "8:_7F3D0965174847ABB402E183045D74DA"
         "MsmSig" = "8:_UNDEFINED"
@@ -82,6 +76,12 @@
         "Entry"
         {
         "MsmKey" = "8:_DA1BF7BAA676D86665F3EE65A7E18475"
+        "OwnerKey" = "8:_7F3D0965174847ABB402E183045D74DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_FDB15203AD99189CD62AF18E52543E5F"
         "OwnerKey" = "8:_7F3D0965174847ABB402E183045D74DA"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -172,26 +172,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0FF048FA13B1A98796CB2E2A05AF533F"
-            {
-            "SourcePath" = "8:VCRUNTIME140_1.dll"
-            "TargetName" = "8:VCRUNTIME140_1.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9C42793F29E64CC784847438108E53E1"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_11CD19E1D48439D0FFA4279522104E68"
             {
             "SourcePath" = "8:DWrite.dll"
@@ -392,6 +372,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FDB15203AD99189CD62AF18E52543E5F"
+            {
+            "SourcePath" = "8:IPHLPAPI.DLL"
+            "TargetName" = "8:IPHLPAPI.DLL"
+            "Tag" = "8:"
+            "Folder" = "8:_9C42793F29E64CC784847438108E53E1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
         }
         "FileType"
         {
@@ -411,7 +411,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_9C42793F29E64CC784847438108E53E1"
             {
-            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\[ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -448,15 +448,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Visping Setup"
-        "ProductCode" = "8:{A7FFFCEF-9A97-4F4A-8BDC-4801EABD230D}"
-        "PackageCode" = "8:{E50CB058-DF55-465F-ADF1-4F4024962848}"
+        "ProductCode" = "8:{7EDCF4BC-8FF6-4515-B157-58C9BD0883D2}"
+        "PackageCode" = "8:{9EB2BF76-67DA-4788-8879-8C4B1013E104}"
         "UpgradeCode" = "8:{B80A9BDC-8283-47D4-8EB2-C7F016CB74BA}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.1.0"
         "Manufacturer" = "8:CubeToPlay"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -470,7 +470,7 @@
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
-        "TargetPlatform" = "3:1"
+        "TargetPlatform" = "3:0"
         "PreBuildEvent" = "8:"
         "PostBuildEvent" = "8:"
         "RunPostBuildEvent" = "3:0"
