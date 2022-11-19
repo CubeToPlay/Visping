@@ -57,12 +57,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_BD6C535CFF8E4890A182B7B892274869"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_D5437FB932C252EE530F22F1E212F664"
         "OwnerKey" = "8:_7F3D0965174847ABB402E183045D74DA"
         "MsmSig" = "8:_UNDEFINED"
@@ -77,6 +71,12 @@
         {
         "MsmKey" = "8:_DA1BF7BAA676D86665F3EE65A7E18475"
         "OwnerKey" = "8:_7F3D0965174847ABB402E183045D74DA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_DD2944997A7B4B64960AA555629AE36A"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -292,26 +292,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BD6C535CFF8E4890A182B7B892274869"
-            {
-            "SourcePath" = "8:D:\\Pictures\\Visping.ico"
-            "TargetName" = "8:Visping.ico"
-            "Tag" = "8:"
-            "Folder" = "8:_9C42793F29E64CC784847438108E53E1"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D5437FB932C252EE530F22F1E212F664"
             {
             "SourcePath" = "8:d2d1.dll"
@@ -370,6 +350,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DD2944997A7B4B64960AA555629AE36A"
+            {
+            "SourcePath" = "8:..\\Visping\\Visping.ico"
+            "TargetName" = "8:Visping.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_9C42793F29E64CC784847438108E53E1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FDB15203AD99189CD62AF18E52543E5F"
@@ -448,15 +448,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Visping Setup"
-        "ProductCode" = "8:{7EDCF4BC-8FF6-4515-B157-58C9BD0883D2}"
-        "PackageCode" = "8:{9EB2BF76-67DA-4788-8879-8C4B1013E104}"
+        "ProductCode" = "8:{D9410D20-4531-4923-BDEC-A1102045F8C9}"
+        "PackageCode" = "8:{98E278B7-7207-4FF3-81AE-45B564247F45}"
         "UpgradeCode" = "8:{B80A9BDC-8283-47D4-8EB2-C7F016CB74BA}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.1.0"
+        "ProductVersion" = "8:1.2.0"
         "Manufacturer" = "8:CubeToPlay"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -580,7 +580,7 @@
             "Target" = "8:_7F3D0965174847ABB402E183045D74DA"
             "Folder" = "8:_3782AB9CB5C7431B9CB697F30A1622BB"
             "WorkingFolder" = "8:_9C42793F29E64CC784847438108E53E1"
-            "Icon" = "8:_BD6C535CFF8E4890A182B7B892274869"
+            "Icon" = "8:_DD2944997A7B4B64960AA555629AE36A"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_C2037C9265D845A6B880F6171380ECD9"
@@ -594,7 +594,7 @@
             "Target" = "8:_7F3D0965174847ABB402E183045D74DA"
             "Folder" = "8:_ADC259061D98409DAA93A617FEAEBF95"
             "WorkingFolder" = "8:_9C42793F29E64CC784847438108E53E1"
-            "Icon" = "8:_BD6C535CFF8E4890A182B7B892274869"
+            "Icon" = "8:_DD2944997A7B4B64960AA555629AE36A"
             "Feature" = "8:"
             }
         }

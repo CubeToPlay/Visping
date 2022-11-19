@@ -11,16 +11,21 @@
 #include <thread>
 #include <chrono>
 
+#include <iostream>
+#include <format>
+
 #include "framework.h"
 #include "Visping.h"
 
 #define MAX_LOADSTRING 100
 #define LOOP_DELAY 20
+#define BUFF_LENGTH 32
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+char server_ip[BUFF_LENGTH]{"8.8.8.8"};
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -32,7 +37,7 @@ void DiscardDeviceResources();
 
 void OnResize(UINT width, UINT height);
 
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Server(HWND, UINT, WPARAM, LPARAM);
 DWORD WINAPI        PingingThread(LPVOID lpParam);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -81,7 +86,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //
 DWORD WINAPI PingingThread(LPVOID lpParam) {
     while (true) {
-        insert(ping());
+
+        insert(ping(server_ip));
         InvalidateRect(m_hwnd, NULL, TRUE);
         std::this_thread::sleep_for(std::chrono::milliseconds(LOOP_DELAY));
     };
@@ -205,6 +211,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // Parse the menu selections:
         switch (wmId)
         {
+        case ID_FILE_SERVER:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_SERVER_BOX), hWnd, Server);
+            break;
         case IDM_EXIT:
             DestroyWindow(hWnd);
             break;
@@ -219,7 +228,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
 
         OnRender();
-        //ping();
         ValidateRect(hWnd, NULL);
     }
     break;
@@ -235,6 +243,54 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+
+
+INT_PTR CALLBACK Server(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    const char* port = server_ip;
+    size_t size = strlen(port) + 1;
+    wchar_t* port_name = new wchar_t[size];
+
+    size_t outSize;
+    mbstowcs_s(&outSize, port_name, size, port, size - 1);
+    
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        SetDlgItemText(hDlg, IDC_IPADDRESS_SERVER, port_name);
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        int wmId = LOWORD(wParam);        
+
+        switch (wmId)
+        {
+        case IDOK:
+            size_t i;
+
+            TCHAR szBuf[BUFF_LENGTH];
+            GetDlgItemText(hDlg, IDC_IPADDRESS_SERVER, szBuf, BUFF_LENGTH - 1);
+
+            wcstombs_s(&i, server_ip, szBuf, BUFF_LENGTH - 1);
+
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+
+            break;
+
+        case IDCANCEL:
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    return (INT_PTR)FALSE;
+}
 
 
 //
