@@ -45,10 +45,16 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
+    <Image Include="..\..\..\..\Downloads\Visping.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Visping.ico">
+    <Image Include="VispingDisconnect.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="VispingSlow.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="VispingUnstable.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

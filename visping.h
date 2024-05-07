@@ -15,7 +15,7 @@
 
 #define ARRAY_LENGTH 20
 
-#define UPDATE_LOOP_INTERVAL 20
+#define UPDATE_LOOP_INTERVAL 30
 
 class Visping {
 public:
@@ -30,6 +30,8 @@ public:
 
 private:
     static DWORD WINAPI UpdateThreadLoop(LPVOID lpParam);
+
+    std::wstring getDisplayText();
 
     HANDLE hUpdateThread;
 
@@ -62,7 +64,8 @@ private:
     HINSTANCE hInst;                                // current instance
     WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
     WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-    WCHAR szServerIPv4[MAX_LOADSTRING];             // The server IPv4 string to ping
+    WCHAR szServerAddress[MAX_LOADSTRING];          // The server address string to ping
+    NOTIFYICONDATA nid;
 
     HWND hwnd;
 

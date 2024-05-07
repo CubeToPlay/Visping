@@ -41,9 +41,24 @@ void Visping::DiscardDeviceResources()
 
 
 DWORD WINAPI Visping::UpdateThreadLoop(LPVOID lpParam) {
-    HWND* hwnd = static_cast<HWND*>(lpParam);
+    Visping* app = static_cast<Visping*>(lpParam);
     while (true) {
-        InvalidateRect(*hwnd, NULL, TRUE);
+        InvalidateRect(app->hwnd, NULL, TRUE);
+
+        std::wstring displayText = app->getDisplayText();
+
+        if (app->pingingServer->getPing() == DISCONNECT_VALUE)
+            app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING_DISCONNECT));
+        else if (app->pingingServer->getInstability() > 100)
+            app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING_UNSTABLE));
+        else if (app->pingingServer->getPing() > 100)
+            app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING_SLOW));
+        else
+            app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING));
+
+        wcscpy_s(app->nid.szTip, displayText.length() + 1, displayText.c_str());
+
+        Shell_NotifyIcon(NIM_MODIFY, &(app->nid));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(UPDATE_LOOP_INTERVAL));
     }
@@ -58,8 +73,7 @@ HRESULT Visping::Initialize()
     // Initialize strings
     LoadStringW(HINST_THISCOMPONENT, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(HINST_THISCOMPONENT, IDC_VISPING, szWindowClass, MAX_LOADSTRING);
-    LoadStringW(HINST_THISCOMPONENT, IDS_SERVER_IPV4, szServerIPv4, MAX_LOADSTRING);
-
+    LoadStringW(HINST_THISCOMPONENT, IDS_SERVER_ADDRESS, szServerAddress, MAX_LOADSTRING);
 
     // Run winsocket
     WSADATA wsaData;
@@ -68,7 +82,7 @@ HRESULT Visping::Initialize()
         // Handle error - Failed to initialize Winsock
     }
 
-    pingingServer = new Ping(szServerIPv4, ARRAY_LENGTH);
+    pingingServer = new Ping(szServerAddress, ARRAY_LENGTH);
 
     pingingServer->start();
 
@@ -92,6 +106,7 @@ HRESULT Visping::Initialize()
         wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
         wcex.lpszClassName = szWindowClass;
         wcex.cbSize = sizeof(WNDCLASSEX);
+
 
         //wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
@@ -126,8 +141,19 @@ HRESULT Visping::Initialize()
 
         if (hwnd)
         {
+
+            // Create a NOTIFYICONDATA structure.
+            nid = { sizeof(NOTIFYICONDATA) };
+            nid.cbSize = sizeof(nid);
+            nid.hWnd = hwnd;
+            nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+            nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING));
+            nid.uCallbackMessage = WM_APP + 1;
+
+            Shell_NotifyIcon(NIM_ADD, &nid);
+
             // Run update thread
-            hUpdateThread = CreateThread(NULL, 0, UpdateThreadLoop, &hwnd, 0, NULL);
+            hUpdateThread = CreateThread(NULL, 0, UpdateThreadLoop, this, 0, NULL);
 
             // Because the SetWindowPos function takes its size in pixels, we
             // obtain the window's DPI, and use it to scale the window size.
@@ -347,10 +373,7 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
         }
 
-        if (!wasHandled)
-        {
-            result = DefWindowProc(hwnd, message, wParam, lParam);
-        }
+        if (!wasHandled) result = DefWindowProc(hwnd, message, wParam, lParam);
     }
 
     return result;
@@ -388,10 +411,10 @@ HRESULT Visping::OnRender()
 
         // Ping Properties
         int average, maximum, minimum, instability;
-        average = pingingServer->getAverage();
+        average = (int)pingingServer->getAverage();
         maximum = pingingServer->getMax();
         minimum = pingingServer->getMin();
-        instability = pingingServer->getInstability();
+        instability = (int)pingingServer->getInstability();
 
         // Draw
         for (int i(ARRAY_LENGTH - 1); i > 0; i--) {
@@ -424,18 +447,9 @@ HRESULT Visping::OnRender()
             CLIENT_HEIGHT
         );
 
+        std::wstring displayText = getDisplayText();
+
         pHwndRenderTarget->FillRectangle(&textRect, pBlackBrush);
-
-        // Display string
-        std::wstring displayText;
-
-        if (pingingServer->getPing() == DISCONNECT_VALUE)
-            displayText.append(L"Lost Connection!");
-        else {
-            displayText.append(L" Average: " + std::to_wstring(average));
-            displayText.append(L"\n Highest: " + std::to_wstring(maximum));
-            displayText.append(L"\n Instability: " + std::to_wstring(instability));
-        }
 
         pHwndRenderTarget->DrawTextW(
             displayText.c_str(),
@@ -478,6 +492,21 @@ HRESULT Visping::CreateDeviceIndependentResources()
     hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pFactory);
 
     return hr;
+}
+
+std::wstring Visping::getDisplayText() {
+    // Display string
+    std::wstring displayText;
+
+    if (pingingServer->getPing() == DISCONNECT_VALUE)
+        displayText.append(L"Lost Connection!");
+    else {
+        displayText.append(L" Average: " + std::to_wstring((int)pingingServer->getAverage()));
+        displayText.append(L"\n Highest: " + std::to_wstring(pingingServer->getMax()));
+        displayText.append(L"\n Instability: " + std::to_wstring(pingingServer->getInstability()));
+    }
+
+    return displayText;
 }
 
 int WINAPI WinMain(

@@ -46,12 +46,11 @@ DWORD WINAPI Ping::ThreadLoop(LPVOID lpParam) {
         ping->minimum = *std::min_element(ping->pingVector->begin(), ping->pingVector->end());
         
         for (int const& p : *ping->pingVector) sum += p;
-        ping->average = (double)sum / ping->pingVector->capacity();
-
+        ping->average = (double)sum / (ping->pingVector->size());
 
         sum = 0;
-        for (int const& p : *ping->pingVector) sum += pow(p - ping->average, 2);
-        ping->instability = sqrt((double)sum / ping->pingVector->capacity());
+        for (int const& p : *ping->pingVector) sum += (int)pow(p - ping->average, 2);
+        ping->instability = sqrt((double)sum / (ping->pingVector->size() - 1));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(PING_LOOP_INTERVAL));
     }
@@ -85,7 +84,7 @@ void Ping::setAddress(wchar_t* server) {
             else 
                 address = &((sockaddr_in6*)info->ai_addr)->sin6_addr;
             
-            InetNtop(info->ai_family, address, addressString, sizeof(wchar_t) * INET6_ADDRSTRLEN);
+            InetNtop(info->ai_family, address, addressString, sizeof(addressString));
             InetPton(info->ai_family, addressString, &ipAddress);
 
             OutputDebugStringA("Addresses: ");
@@ -122,8 +121,8 @@ void Ping::insert(int pingValue) {
 }
 
 int Ping::getPing() { return pingVector->front(); }
-int Ping::getPing(int index) { return (index < 0 || index >= pingVector->capacity()) ? DISCONNECT_VALUE : pingVector->at(index); }
+int Ping::getPing(int index) { return (index < 0 || index >= pingVector->size()) ? DISCONNECT_VALUE : pingVector->at(index); }
 int Ping::getMax() { return maximum; }
 int Ping::getMin() { return minimum; }
-int Ping::getInstability() { return instability; }
+double Ping::getInstability() { return instability; }
 double Ping::getAverage() { return average; }

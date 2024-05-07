@@ -3,7 +3,7 @@
 // Used by Visping.rc
 
 #define IDS_APP_TITLE			103
-#define IDS_SERVER_IPV4			104
+#define IDS_SERVER_ADDRESS		104
 
 #define IDR_MAINFRAME			128
 #define IDD_VISPING_DIALOG		102
@@ -12,6 +12,9 @@
 #define IDM_EXIT				105
 #define IDI_VISPING				107
 #define IDI_SMALL				108
+#define IDI_VISPING_DISCONNECT  109
+#define IDI_VISPING_UNSTABLE	110
+#define IDI_VISPING_SLOW	    111
 #define IDC_VISPING				109
 #define IDC_MYICON				2
 #ifndef IDC_STATIC

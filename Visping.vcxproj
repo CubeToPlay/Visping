@@ -141,8 +141,10 @@
     <ResourceCompile Include="Visping.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico" />
-    <Image Include="Visping.ico" />
+    <Image Include="..\..\..\..\Downloads\Visping.ico" />
+    <Image Include="VispingDisconnect.ico" />
+    <Image Include="VispingSlow.ico" />
+    <Image Include="VispingUnstable.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

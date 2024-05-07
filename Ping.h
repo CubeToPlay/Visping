@@ -29,7 +29,7 @@ public:
     int getPing(int index);
     int getMax();
     int getMin();
-    int getInstability();
+    double getInstability();
 
 private:
     static DWORD WINAPI ThreadLoop(LPVOID lpParam);
