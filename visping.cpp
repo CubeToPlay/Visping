@@ -336,6 +336,25 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         {
             switch (message)
             {
+            case WM_COMMAND:
+            {
+                // Parse the menu selections:
+                switch (LOWORD(wParam))
+                {
+                case IDM_SERVER:
+                    DialogBox(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDD_SERVER_BOX), hwnd, Server);
+                    break;
+                case IDM_EXIT:
+                    SendMessage(hwnd, WM_DESTROY, NULL, NULL);
+                    break;
+                default:
+                    return DefWindowProc(hwnd, message, wParam, lParam);
+                }
+            }
+            result = 0;
+            wasHandled = true;
+            break;
+
             case WM_SIZE:
             {
                 UINT width = LOWORD(lParam);
@@ -375,6 +394,51 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         if (!wasHandled) result = DefWindowProc(hwnd, message, wParam, lParam);
     }
+
+    return result;
+}
+
+LRESULT CALLBACK Visping::Server(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    LRESULT result = 0;
+    bool wasHandled = false;
+
+    switch (message)
+    {
+    case WM_COMMAND:
+    {
+        switch (LOWORD(wParam))
+        {
+        case ID_OK:
+            size_t i;
+
+            //TCHAR szBuf[BUFF_LENGTH];
+            //GetDlgItemText(hwnd, IDC_IPADDRESS_SERVER, szBuf, BUFF_LENGTH - 1);
+
+            //wcstombs_s(&i, server_ip, szBuf, BUFF_LENGTH - 1);
+
+            EndDialog(hwnd, LOWORD(wParam));
+            break;
+
+        case ID_CANCEL:
+            EndDialog(hwnd, LOWORD(wParam));
+            break;
+        }
+    }
+    result = 0;
+    wasHandled = true;
+    break;
+
+    case WM_INITDIALOG:
+    {
+        SetDlgItemText(hwnd, IDC_ADDRESS, L" ");
+    }
+    result = 0;
+    wasHandled = true;
+    break;
+    }
+
+    if (!wasHandled) result = DefWindowProc(hwnd, message, wParam, lParam);
 
     return result;
 }
@@ -447,10 +511,9 @@ HRESULT Visping::OnRender()
             CLIENT_HEIGHT
         );
 
-        std::wstring displayText = getDisplayText();
-
         pHwndRenderTarget->FillRectangle(&textRect, pBlackBrush);
 
+        std::wstring displayText = getDisplayText();
         pHwndRenderTarget->DrawTextW(
             displayText.c_str(),
             displayText.length(),
@@ -503,7 +566,7 @@ std::wstring Visping::getDisplayText() {
     else {
         displayText.append(L" Average: " + std::to_wstring((int)pingingServer->getAverage()));
         displayText.append(L"\n Highest: " + std::to_wstring(pingingServer->getMax()));
-        displayText.append(L"\n Instability: " + std::to_wstring(pingingServer->getInstability()));
+        displayText.append(L"\n Instability: " + std::to_wstring((int)pingingServer->getInstability()));
     }
 
     return displayText;

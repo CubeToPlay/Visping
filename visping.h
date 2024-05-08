@@ -61,7 +61,13 @@ private:
         LPARAM lParam
     );
 
-    HINSTANCE hInst;                                // current instance
+    static LRESULT CALLBACK Server(
+        HWND hwnd, 
+        UINT message, 
+        WPARAM wParam, 
+        LPARAM lParam
+    );
+
     WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
     WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
     WCHAR szServerAddress[MAX_LOADSTRING];          // The server address string to ping
