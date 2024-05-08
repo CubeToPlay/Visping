@@ -3,6 +3,8 @@
 #include "resource.h"
 #include "Ping.h"
 
+#define WM_ICONNOTIFY (WM_APP + 1)
+
 #define MAX_LOADSTRING 100
 
 #define MENU_HEIGHT 27

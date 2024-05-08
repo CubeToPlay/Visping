@@ -141,14 +141,13 @@ HRESULT Visping::Initialize()
 
         if (hwnd)
         {
-
             // Create a NOTIFYICONDATA structure.
             nid = { sizeof(NOTIFYICONDATA) };
             nid.cbSize = sizeof(nid);
             nid.hWnd = hwnd;
             nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
             nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING));
-            nid.uCallbackMessage = WM_APP + 1;
+            nid.uCallbackMessage = WM_ICONNOTIFY;
 
             Shell_NotifyIcon(NIM_ADD, &nid);
 
@@ -385,6 +384,27 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case WM_DESTROY:
             {
                 PostQuitMessage(0);
+            }
+            result = 1;
+            wasHandled = true;
+            break;
+
+            case WM_CLOSE:
+            {
+                ShowWindow(hwnd, SW_HIDE);
+            }
+            result = 1;
+            wasHandled = true;
+            break;
+
+            case WM_ICONNOTIFY:
+            {
+                switch (lParam)
+                {
+                case WM_LBUTTONUP:
+                    ShowWindow(hwnd, SW_SHOWNORMAL);
+                    break;
+                }
             }
             result = 1;
             wasHandled = true;

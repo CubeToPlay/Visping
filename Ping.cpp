@@ -52,7 +52,9 @@ DWORD WINAPI Ping::ThreadLoop(LPVOID lpParam) {
         for (int const& p : *ping->pingVector) sum += (int)pow(p - ping->average, 2);
         ping->instability = sqrt((double)sum / (ping->pingVector->size() - 1));
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(PING_LOOP_INTERVAL));
+        int delay = PING_LOOP_INTERVAL - ping->getPing();
+
+        if (delay > 0) std::this_thread::sleep_for(std::chrono::milliseconds(delay));
     }
 
     return 0;
