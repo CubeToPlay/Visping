@@ -335,6 +335,19 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
         {
             switch (message)
             {
+            case WM_SYSCOMMAND:
+            {
+                switch (wParam)
+                {
+                case SC_MINIMIZE:
+                    SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+                    wasHandled = true;
+                    break;
+                }
+            }
+            result = 0;
+            break;
+
             case WM_COMMAND:
             {
                 // Parse the menu selections:
@@ -427,7 +440,7 @@ LRESULT CALLBACK Visping::Server(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     {
     case WM_COMMAND:
     {
-        switch (LOWORD(wParam))
+        switch (wParam)
         {
         case ID_OK:
             size_t i;
@@ -437,11 +450,11 @@ LRESULT CALLBACK Visping::Server(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
             //wcstombs_s(&i, server_ip, szBuf, BUFF_LENGTH - 1);
 
-            EndDialog(hwnd, LOWORD(wParam));
+            EndDialog(hwnd, wParam);
             break;
 
         case ID_CANCEL:
-            EndDialog(hwnd, LOWORD(wParam));
+            EndDialog(hwnd, wParam);
             break;
         }
     }
