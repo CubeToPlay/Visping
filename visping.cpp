@@ -71,6 +71,8 @@ HRESULT Visping::Initialize()
     HRESULT hr;
 
     // Add to Startup
+    SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+
     wchar_t path[MAX_PATH];
     GetModuleFileNameW(NULL, path, MAX_PATH);
 
@@ -532,15 +534,15 @@ HRESULT Visping::OnRender()
         }
 
         pHwndRenderTarget->DrawLine(
-            D2D1::Point2F(0, DRAW_HEIGHT - average),
-            D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - average),
+            D2D1::Point2F(0.0f, (float)(DRAW_HEIGHT - average)),
+            D2D1::Point2F((float)DRAW_WIDTH, (float)(DRAW_HEIGHT - average)),
             pCyanBrush,
             1.5f
         );
 
         pHwndRenderTarget->DrawLine(
-            D2D1::Point2F(0, DRAW_HEIGHT - maximum),
-            D2D1::Point2F(DRAW_WIDTH, DRAW_HEIGHT - maximum),
+            D2D1::Point2F(0, (float)(DRAW_HEIGHT - maximum)),
+            D2D1::Point2F((float)DRAW_WIDTH, (float)(DRAW_HEIGHT - maximum)),
             pYellowBrush,
             1.5f
         );
