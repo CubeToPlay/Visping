@@ -17,6 +17,7 @@ Ping::Ping(wchar_t* server, int length) {
 
 Ping::~Ping() {
     stop();
+    free(&hints);
     WSACleanup();
     delete pingVector;
 }

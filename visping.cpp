@@ -70,6 +70,14 @@ HRESULT Visping::Initialize()
 {
     HRESULT hr;
 
+    // Add to Startup
+    wchar_t path[MAX_PATH];
+    GetModuleFileNameW(NULL, path, MAX_PATH);
+
+    HKEY hkey = NULL;
+    RegCreateKey(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
+    RegSetValueEx(hkey, L"Visping", 0, REG_SZ, (BYTE*)path, (wcslen(path) + 1) * 2);
+
     // Initialize strings
     LoadStringW(HINST_THISCOMPONENT, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(HINST_THISCOMPONENT, IDC_VISPING, szWindowClass, MAX_LOADSTRING);
