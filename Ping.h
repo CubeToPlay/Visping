@@ -11,7 +11,7 @@
 #define DISCONNECT_VALUE -1
 #define PING_TIME_OUT 1000
 #define BUFFER_LENGTH 32
-#define PING_LOOP_INTERVAL 20
+#define PING_LOOP_INTERVAL 50
 
 class Ping {
 public:
