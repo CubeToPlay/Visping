@@ -40,6 +40,8 @@ private:
 
     HANDLE hThread;
 
+    LPWSTR server;
+
     char* sendData[BUFFER_LENGTH];
     DWORD dwRetVal;
     DWORD replySize;

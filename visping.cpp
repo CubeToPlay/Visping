@@ -20,7 +20,7 @@ Visping::Visping() :
 
 Visping::~Visping() {
     CloseHandle(hUpdateThread);
-
+    DestroyMenu(hNotifyIconMenu);
     SafeRelease(&pFactory);
     DiscardDeviceResources();
 }
@@ -51,7 +51,7 @@ DWORD WINAPI Visping::UpdateThreadLoop(LPVOID lpParam) {
             app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING_DISCONNECT));
         else if (app->pingingServer->getInstability() > 100)
             app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING_UNSTABLE));
-        else if (app->pingingServer->getPing() > 100)
+        else if (app->pingingServer->getAverage() > 100)
             app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING_SLOW));
         else
             app->nid.hIcon = LoadIcon(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDI_VISPING));
@@ -69,21 +69,37 @@ DWORD WINAPI Visping::UpdateThreadLoop(LPVOID lpParam) {
 HRESULT Visping::Initialize()
 {
     HRESULT hr;
-
-    // Add to Startup
     SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
-
-    wchar_t path[MAX_PATH];
-    GetModuleFileNameW(NULL, path, MAX_PATH);
-
-    HKEY hkey = NULL;
-    RegCreateKey(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
-    RegSetValueEx(hkey, L"Visping", 0, REG_SZ, (BYTE*)path, (wcslen(path) + 1) * 2);
 
     // Initialize strings
     LoadStringW(HINST_THISCOMPONENT, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(HINST_THISCOMPONENT, IDC_VISPING, szWindowClass, MAX_LOADSTRING);
-    LoadStringW(HINST_THISCOMPONENT, IDS_SERVER_ADDRESS, szServerAddress, MAX_LOADSTRING);
+    LoadStringW(HINST_THISCOMPONENT, IDS_SERVER_ADDRESS, szServerAddressDefault, MAX_LOADSTRING);
+    GetModuleFileNameW(NULL, szPath, MAX_PATH);
+
+    CloseHandle(CreateFile(L"settings.ini",
+        GENERIC_WRITE,
+        0,
+        0,
+        CREATE_NEW,
+        FILE_ATTRIBUTE_NORMAL,
+        0)
+    );
+
+    wcscpy_s(szSettingsFilePath, szPath);
+    PathRemoveFileSpecW(szSettingsFilePath);
+    PathCombineW(szSettingsFilePath, szSettingsFilePath, L"settings.ini");
+
+    // Initalize Other
+    hNotifyIconMenu = CreatePopupMenu();
+    AppendMenu(hNotifyIconMenu, MF_STRING, IDM_EXIT, L"Exit");
+
+    GetClientRect(GetDesktopWindow(), &desktop);
+
+    // Add to Startup
+    HKEY hkey = NULL;
+    RegCreateKey(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
+    RegSetValueEx(hkey, L"Visping", 0, REG_SZ, (BYTE*)wcscat_s(szPath, L" startup"), (wcslen(szPath) + 1) * 2);
 
     // Run winsocket
     WSADATA wsaData;
@@ -91,6 +107,10 @@ HRESULT Visping::Initialize()
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         // Handle error - Failed to initialize Winsock
     }
+
+    GetPrivateProfileStringW(L"Server", L"address", szServerAddressDefault, szServerAddress, MAX_LOADSTRING, szSettingsFilePath);
+
+    GetPrivateProfileIntW(L"Window", L"center-window", 0, szSettingsFilePath);
 
     pingingServer = new Ping(szServerAddress, ARRAY_LENGTH);
 
@@ -128,22 +148,14 @@ HRESULT Visping::Initialize()
         // the window is created on). Then we use SetWindowPos to resize it to the
         // correct DPI-scaled size, then we use ShowWindow to show it.
 
-        RECT wr, desktop;
-        wr.top = 0;
-        wr.left = 0;
-        wr.bottom = CLIENT_HEIGHT;
-        wr.right = CLIENT_WIDTH;
-
-        GetClientRect(GetDesktopWindow(), &desktop);
-
         hwnd = CreateWindowW(
             szWindowClass,
             szTitle,
             WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
-            0,
-            0,
+            CLIENT_WIDTH,
+            CLIENT_HEIGHT,
             NULL,
             NULL,
             HINST_THISCOMPONENT,
@@ -151,6 +163,22 @@ HRESULT Visping::Initialize()
 
         if (hwnd)
         {
+            hMenu = GetMenu(hwnd);
+
+            GetMenuItemInfo(hMenu, IDM_SHOW_STARTUP, FALSE, &showOnStartupMenuItemInfo);
+            GetMenuItemInfo(hMenu, IDM_CENTER_WINDOW, FALSE, &centerWindowMenuItemInfo);
+
+            showOnStartupMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
+            showOnStartupMenuItemInfo.fMask = MIIM_STATE;
+            showOnStartupMenuItemInfo.fState = (GetPrivateProfileIntW(L"Window", L"show-on-startup", 0, szSettingsFilePath) == 1) ? MFS_CHECKED : MFS_UNCHECKED;
+            SetMenuItemInfo(hMenu, IDM_SHOW_STARTUP, FALSE, &showOnStartupMenuItemInfo);
+
+
+            centerWindowMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
+            centerWindowMenuItemInfo.fMask = MIIM_STATE;
+            centerWindowMenuItemInfo.fState = (GetPrivateProfileIntW(L"Window", L"center-window", 1, szSettingsFilePath) == 1) ? MFS_CHECKED : MFS_UNCHECKED;
+            SetMenuItemInfo(hMenu, IDM_CENTER_WINDOW, FALSE, &centerWindowMenuItemInfo);
+
             // Create a NOTIFYICONDATA structure.
             nid = { sizeof(NOTIFYICONDATA) };
             nid.cbSize = sizeof(nid);
@@ -168,18 +196,15 @@ HRESULT Visping::Initialize()
             // obtain the window's DPI, and use it to scale the window size.
             int dpi = GetDpiForWindow(hwnd);
 
-            SetWindowPos(
-                hwnd,
-                NULL,
-                NULL,
-                NULL,
-                wr.right - wr.left,
-                wr.bottom - wr.top,
-                /*
-                static_cast<int>(ceil(640.f * dpi / 96.f)),
-                static_cast<int>(ceil(480.f * dpi / 96.f)),*/
-                SWP_NOMOVE);
-            ShowWindow(hwnd, SW_SHOWNORMAL);
+            updateWindowCentered(
+                GetPrivateProfileIntW(L"Window", L"position-x", (desktop.right - CLIENT_WIDTH) / 2, szSettingsFilePath), 
+                GetPrivateProfileIntW(L"Window", L"position-y", 0, szSettingsFilePath) 
+            );
+            
+            // The process was started by the user or show on startup is enabled.
+            if (__argc > 1 && __argv[1] == "startup" || showOnStartupMenuItemInfo.fState == MFS_CHECKED)
+                ShowWindow(hwnd, SW_SHOW);
+
             UpdateWindow(hwnd);
         }
     }
@@ -196,6 +221,221 @@ void Visping::RunMessageLoop()
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+}
+
+LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    LRESULT result = 0;
+
+    if (message == WM_CREATE)
+    {
+        LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
+        Visping* pApp = (Visping*)pcs->lpCreateParams;
+
+        ::SetWindowLongPtrW(
+            hwnd,
+            GWLP_USERDATA,
+            reinterpret_cast<LONG_PTR>(pApp)
+        );
+
+        result = 1;
+    }
+    else
+    {
+        Visping* pApp = reinterpret_cast<Visping*>(static_cast<LONG_PTR>(
+            ::GetWindowLongPtrW(
+                hwnd,
+                GWLP_USERDATA
+            )));
+
+        bool wasHandled = false;
+
+        if (pApp)
+        {
+            switch (message)
+            {
+            case WM_SYSCOMMAND:
+            {
+                switch (wParam)
+                {
+                case SC_MINIMIZE:
+                    SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+                    wasHandled = true;
+                    break;
+                }
+            }
+            result = 0;
+            break;
+
+            case WM_COMMAND:
+            {
+
+                // Parse the menu selections:
+                switch (wParam)
+                {
+                case IDM_SERVER:
+                    DialogBoxParam(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDD_SERVER_BOX), hwnd, Server, (LPARAM)pApp);
+                    break;
+                case IDM_EXIT:
+                    SendMessage(hwnd, WM_DESTROY, NULL, NULL);
+                    break;
+                case IDM_SHOW_STARTUP:
+                    pApp->showOnStartupMenuItemInfo.fState = (pApp->showOnStartupMenuItemInfo.fState == MFS_CHECKED) ? MFS_UNCHECKED : MFS_CHECKED;
+                    SetMenuItemInfo(pApp->hMenu, IDM_SHOW_STARTUP, FALSE, &(pApp->showOnStartupMenuItemInfo));
+
+                    WritePrivateProfileStringW(L"Window", L"show-on-startup", (pApp->showOnStartupMenuItemInfo.fState == MFS_CHECKED) ? L"1" : L"0", pApp->szSettingsFilePath);
+
+                    break;
+                case IDM_CENTER_WINDOW:
+                    pApp->centerWindowMenuItemInfo.fState = (pApp->centerWindowMenuItemInfo.fState == MFS_CHECKED) ? MFS_UNCHECKED : MFS_CHECKED;
+                    SetMenuItemInfo(pApp->hMenu, IDM_CENTER_WINDOW, FALSE, &(pApp->centerWindowMenuItemInfo));
+
+                    WritePrivateProfileStringW(L"Window", L"center-window", (pApp->centerWindowMenuItemInfo.fState == MFS_CHECKED) ? L"1" : L"0", pApp->szSettingsFilePath);
+
+                    if (pApp->centerWindowMenuItemInfo.fState == MFS_CHECKED) pApp->saveWindowPosition();
+
+                    pApp->updateWindowCentered(
+                        GetPrivateProfileIntW(L"Window", L"position-x", (pApp->desktop.right - CLIENT_WIDTH) / 2, pApp->szSettingsFilePath),
+                        GetPrivateProfileIntW(L"Window", L"position-y", 0, pApp->szSettingsFilePath)
+                    );
+                    
+                    break;
+                case IDM_HIDE:
+                    SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+                    break;
+                default:
+                    return DefWindowProc(hwnd, message, wParam, lParam);
+                }
+            }
+            result = 0;
+            wasHandled = true;
+            break;
+
+            case WM_SIZE:
+            {
+                UINT width = LOWORD(lParam);
+                UINT height = HIWORD(lParam);
+                pApp->OnResize(width, height);
+            }
+            result = 0;
+            wasHandled = true;
+            break;
+
+            case WM_DISPLAYCHANGE:
+            {
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
+            result = 0;
+            wasHandled = true;
+            break;
+
+            case WM_PAINT:
+            {
+                pApp->OnRender();
+                ValidateRect(hwnd, NULL);
+            }
+            result = 0;
+            wasHandled = true;
+            break;
+
+            case WM_DESTROY:
+            {
+                pApp->saveWindowPosition();
+                Shell_NotifyIcon(NIM_DELETE, &(pApp->nid));
+                DestroyWindow(pApp->hwnd);
+                PostQuitMessage(0);
+            }
+            result = 1;
+            wasHandled = true;
+            break;
+
+            case WM_CLOSE:
+            {
+                ShowWindow(hwnd, SW_HIDE);
+            }
+            result = 1;
+            wasHandled = true;
+            break;
+
+            case WM_ICONNOTIFY:
+            {
+                switch (lParam)
+                {
+                case WM_LBUTTONUP:
+                    if (!IsWindowVisible(hwnd))
+                        ShowWindow(hwnd, SW_SHOW);
+                    else
+                        SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+
+                    break;
+                case WM_RBUTTONUP:
+                    POINT pt;
+                    GetCursorPos(&pt);
+                    SetForegroundWindow(hwnd);
+                    TrackPopupMenu(pApp->hNotifyIconMenu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                    break;
+                }
+            }
+            result = 1;
+            wasHandled = true;
+            break;
+            }
+        }
+
+        if (!wasHandled) result = DefWindowProc(hwnd, message, wParam, lParam);
+    }
+
+    return result;
+}
+
+INT_PTR CALLBACK Visping::Server(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    INT_PTR result = 0;
+    bool wasHandled = false;
+
+    switch (message)
+    {
+    case WM_INITDIALOG:
+    {
+        Visping* pApp = (Visping*)lParam;
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, lParam);
+
+        SetDlgItemText(hwnd, IDC_ADDRESS, pApp->szServerAddress);
+    }
+    result = 1;
+    wasHandled = true;
+    break;
+
+
+    case WM_COMMAND:
+    {
+        Visping* pApp = (Visping*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+        switch (wParam)
+        {
+        case ID_OK:
+            WCHAR szBuffer[MAX_LOADSTRING];
+            GetDlgItemText(hwnd, IDC_ADDRESS, szBuffer, MAX_LOADSTRING);
+
+            WritePrivateProfileStringW(L"Server", L"address", szBuffer, pApp->szSettingsFilePath);
+            wcscpy_s(pApp->szServerAddress, szBuffer);
+            pApp->pingingServer->setAddress(szBuffer);
+
+            EndDialog(hwnd, wParam);
+            break;
+        case ID_CANCEL:
+            EndDialog(hwnd, wParam);
+            break;
+        }
+    }
+    result = 0;
+    wasHandled = true;
+    break;
+
+    }
+    if (!wasHandled) result = DefWindowProc(hwnd, message, wParam, lParam);
+
+    return result;
 }
 
 HRESULT Visping::CreateDeviceResources() {
@@ -314,177 +554,6 @@ HRESULT Visping::CreateDeviceResources() {
     return hr;
 }
 
-LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    LRESULT result = 0;
-
-    if (message == WM_CREATE)
-    {
-        LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
-        Visping* pApp = (Visping*)pcs->lpCreateParams;
-
-        ::SetWindowLongPtrW(
-            hwnd,
-            GWLP_USERDATA,
-            reinterpret_cast<LONG_PTR>(pApp)
-        );
-
-        result = 1;
-    }
-    else
-    {
-        Visping* pApp = reinterpret_cast<Visping*>(static_cast<LONG_PTR>(
-            ::GetWindowLongPtrW(
-                hwnd,
-                GWLP_USERDATA
-            )));
-
-        bool wasHandled = false;
-
-        if (pApp)
-        {
-            switch (message)
-            {
-            case WM_SYSCOMMAND:
-            {
-                switch (wParam)
-                {
-                case SC_MINIMIZE:
-                    SendMessage(hwnd, WM_CLOSE, NULL, NULL);
-                    wasHandled = true;
-                    break;
-                }
-            }
-            result = 0;
-            break;
-
-            case WM_COMMAND:
-            {
-                // Parse the menu selections:
-                switch (LOWORD(wParam))
-                {
-                case IDM_SERVER:
-                    DialogBox(HINST_THISCOMPONENT, MAKEINTRESOURCE(IDD_SERVER_BOX), hwnd, Server);
-                    break;
-                case IDM_EXIT:
-                    SendMessage(hwnd, WM_DESTROY, NULL, NULL);
-                    break;
-                default:
-                    return DefWindowProc(hwnd, message, wParam, lParam);
-                }
-            }
-            result = 0;
-            wasHandled = true;
-            break;
-
-            case WM_SIZE:
-            {
-                UINT width = LOWORD(lParam);
-                UINT height = HIWORD(lParam);
-                pApp->OnResize(width, height);
-            }
-            result = 0;
-            wasHandled = true;
-            break;
-
-            case WM_DISPLAYCHANGE:
-            {
-                InvalidateRect(hwnd, NULL, FALSE);
-            }
-            result = 0;
-            wasHandled = true;
-            break;
-
-            case WM_PAINT:
-            {
-                pApp->OnRender();
-                ValidateRect(hwnd, NULL);
-            }
-            result = 0;
-            wasHandled = true;
-            break;
-
-            case WM_DESTROY:
-            {
-                PostQuitMessage(0);
-            }
-            result = 1;
-            wasHandled = true;
-            break;
-
-            case WM_CLOSE:
-            {
-                ShowWindow(hwnd, SW_HIDE);
-            }
-            result = 1;
-            wasHandled = true;
-            break;
-
-            case WM_ICONNOTIFY:
-            {
-                switch (lParam)
-                {
-                case WM_LBUTTONUP:
-                    ShowWindow(hwnd, SW_SHOWNORMAL);
-                    break;
-                }
-            }
-            result = 1;
-            wasHandled = true;
-            break;
-            }
-        }
-
-        if (!wasHandled) result = DefWindowProc(hwnd, message, wParam, lParam);
-    }
-
-    return result;
-}
-
-LRESULT CALLBACK Visping::Server(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    LRESULT result = 0;
-    bool wasHandled = false;
-
-    switch (message)
-    {
-    case WM_COMMAND:
-    {
-        switch (wParam)
-        {
-        case ID_OK:
-            size_t i;
-
-            //TCHAR szBuf[BUFF_LENGTH];
-            //GetDlgItemText(hwnd, IDC_IPADDRESS_SERVER, szBuf, BUFF_LENGTH - 1);
-
-            //wcstombs_s(&i, server_ip, szBuf, BUFF_LENGTH - 1);
-
-            EndDialog(hwnd, wParam);
-            break;
-
-        case ID_CANCEL:
-            EndDialog(hwnd, wParam);
-            break;
-        }
-    }
-    result = 0;
-    wasHandled = true;
-    break;
-
-    case WM_INITDIALOG:
-    {
-        SetDlgItemText(hwnd, IDC_ADDRESS, L" ");
-    }
-    result = 0;
-    wasHandled = true;
-    break;
-    }
-
-    if (!wasHandled) result = DefWindowProc(hwnd, message, wParam, lParam);
-
-    return result;
-}
 
 HRESULT Visping::OnRender()
 {
@@ -605,7 +674,7 @@ std::wstring Visping::getDisplayText() {
     std::wstring displayText;
 
     if (pingingServer->getPing() == DISCONNECT_VALUE)
-        displayText.append(L"Lost Connection!");
+        displayText.append(L" Lost Connection!");
     else {
         displayText.append(L" Average: " + std::to_wstring((int)pingingServer->getAverage()));
         displayText.append(L"\n Highest: " + std::to_wstring(pingingServer->getMax()));
@@ -615,11 +684,40 @@ std::wstring Visping::getDisplayText() {
     return displayText;
 }
 
+void Visping::updateWindowCentered(int px, int py) {
+    if (centerWindowMenuItemInfo.fState == MFS_CHECKED)
+        SetWindowPos(
+            hwnd,
+            NULL,
+            (desktop.right - CLIENT_WIDTH) / 2,
+            -TITLE_BAR_HEIGHT,
+            CLIENT_WIDTH,
+            CLIENT_HEIGHT,
+            SWP_NOSIZE);
+    else
+        SetWindowPos(
+            hwnd,
+            NULL,
+            px,
+           py,
+            CLIENT_WIDTH,
+            CLIENT_HEIGHT,
+            SWP_NOSIZE);
+}
+
+void Visping::saveWindowPosition() {
+    RECT windowRect;
+    GetWindowRect(hwnd, &windowRect);
+
+    WritePrivateProfileStringW(L"Window", L"position-x", std::to_wstring(windowRect.left).c_str(), szSettingsFilePath);
+    WritePrivateProfileStringW(L"Window", L"position-y", std::to_wstring(windowRect.top).c_str(), szSettingsFilePath);
+}
+
 int WINAPI WinMain(
-    HINSTANCE /* hInstance */,
-    HINSTANCE /* hPrevInstance */,
-    LPSTR /* lpCmdLine */,
-    int /* nCmdShow */
+    HINSTANCE  hInstance,
+    HINSTANCE hPrevInstance,
+    LPSTR lpCmdLine,
+    int nCmdShow
 )
 {
     // Use HeapSetInformation to specify that the process should
@@ -628,6 +726,7 @@ int WINAPI WinMain(
     // The return value is ignored, because we want to continue running in the
     // unlikely event that HeapSetInformation fails.
     HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
+
 
     if (SUCCEEDED(CoInitialize(NULL)))
     {

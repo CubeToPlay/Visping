@@ -7,12 +7,13 @@
 
 #define MAX_LOADSTRING 100
 
+#define TITLE_BAR_HEIGHT 31
 #define MENU_HEIGHT 27
 
 #define DRAW_WIDTH 500
 #define DRAW_HEIGHT 200
 
-#define CLIENT_WIDTH 500
+#define CLIENT_WIDTH DRAW_WIDTH
 #define CLIENT_HEIGHT 300 + MENU_HEIGHT*2
 
 #define ARRAY_LENGTH 20
@@ -34,6 +35,9 @@ private:
     static DWORD WINAPI UpdateThreadLoop(LPVOID lpParam);
 
     std::wstring getDisplayText();
+
+    void updateWindowCentered(int px, int py);
+    void saveWindowPosition();
 
     HANDLE hUpdateThread;
 
@@ -63,7 +67,7 @@ private:
         LPARAM lParam
     );
 
-    static LRESULT CALLBACK Server(
+    static INT_PTR CALLBACK Server(
         HWND hwnd, 
         UINT message, 
         WPARAM wParam, 
@@ -73,9 +77,19 @@ private:
     WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
     WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
     WCHAR szServerAddress[MAX_LOADSTRING];          // The server address string to ping
-    NOTIFYICONDATA nid;
-
+    WCHAR szServerAddressDefault[MAX_LOADSTRING];          // The server address string to ping
+    WCHAR szPath[MAX_PATH];
+    WCHAR szSettingsFilePath[MAX_PATH];
+    
     HWND hwnd;
+    HMENU hMenu;
+    HMENU hNotifyIconMenu;
+
+    RECT desktop;
+
+    NOTIFYICONDATA nid;
+    MENUITEMINFO showOnStartupMenuItemInfo;
+    MENUITEMINFO centerWindowMenuItemInfo;
 
     Ping* pingingServer;
 

@@ -57,5 +57,8 @@
     <Image Include="VispingUnstable.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Visping.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

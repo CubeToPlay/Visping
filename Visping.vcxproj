@@ -142,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\Visping.ico" />
+    <Image Include="Visping.ico" />
     <Image Include="VispingDisconnect.ico" />
     <Image Include="VispingSlow.ico" />
     <Image Include="VispingUnstable.ico" />

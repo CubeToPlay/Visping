@@ -62,6 +62,8 @@ DWORD WINAPI Ping::ThreadLoop(LPVOID lpParam) {
 }
 
 void Ping::setAddress(wchar_t* server) {
+    this->server = server;
+
     ipAddress = INADDR_NONE;
 
     if (InetPton(AF_INET, server, &ipAddress) != 1)
@@ -94,14 +96,24 @@ void Ping::setAddress(wchar_t* server) {
             OutputDebugStringW(addressString);
             OutputDebugStringA("\n");
         }
-    }
 
-    FreeAddrInfoW(addressInfo);
+        FreeAddrInfoW(addressInfo);
+    }
+    else {
+        OutputDebugStringA("Addresses: ");
+        OutputDebugStringW(server);
+        OutputDebugStringA("\n");
+    }
 }
 
 int Ping::ping() {
 
-    if (ipAddress == INADDR_NONE || hIcmpFile == INVALID_HANDLE_VALUE) return DISCONNECT_VALUE;
+    if (hIcmpFile == INVALID_HANDLE_VALUE) return DISCONNECT_VALUE;
+
+    if (ipAddress == INADDR_NONE) {
+        setAddress(this->server);
+        return  DISCONNECT_VALUE;
+    }
 
     replySize = sizeof(ICMP_ECHO_REPLY) + sizeof(sendData) + 8;
     void* replyBuffer = (VOID*)malloc(replySize);
