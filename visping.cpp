@@ -203,7 +203,7 @@ HRESULT Visping::Initialize()
             
             // The process was started by the user or show on startup is enabled.
             if (__argc > 1 && __argv[1] == "startup" || showOnStartupMenuItemInfo.fState == MFS_CHECKED)
-                ShowWindow(hwnd, SW_SHOW);
+                ShowWindow(hwnd, SW_SHOWNORMAL);
 
             UpdateWindow(hwnd);
         }
@@ -364,9 +364,12 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                 case WM_LBUTTONUP:
                     if (!IsWindowVisible(hwnd))
-                        ShowWindow(hwnd, SW_SHOW);
-                    else
-                        SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+                    {
+                        ShowWindow(hwnd, SW_SHOWNORMAL);
+                        SetForegroundWindow(hwnd);
+                    }
+                    else SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+
 
                     break;
                 case WM_RBUTTONUP:
