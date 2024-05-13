@@ -340,7 +340,8 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
             case WM_DESTROY:
             {
-                pApp->saveWindowPosition();
+
+                if (pApp->centerWindowMenuItemInfo.fState == MFS_UNCHECKED) pApp->saveWindowPosition();
                 Shell_NotifyIcon(NIM_DELETE, &(pApp->nid));
                 DestroyWindow(pApp->hwnd);
                 PostQuitMessage(0);
