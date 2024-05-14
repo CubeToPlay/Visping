@@ -31,6 +31,9 @@ public:
     // Process and dispatch messages
     void RunMessageLoop();
 
+    WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
+    WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+
 private:
     static DWORD WINAPI UpdateThreadLoop(LPVOID lpParam);
 
@@ -74,8 +77,6 @@ private:
         LPARAM lParam
     );
 
-    WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-    WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
     WCHAR szServerAddress[MAX_LOADSTRING];          // The server address string to ping
     WCHAR szServerAddressDefault[MAX_LOADSTRING];          // The server address string to ping
     WCHAR szPath[MAX_PATH];

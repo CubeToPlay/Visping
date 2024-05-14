@@ -16,7 +16,10 @@ Visping::Visping() :
     pWriteFactory(NULL),
     pWriteTextFormat(NULL),
     pGradentStopCollection(NULL)
-{}
+{
+    LoadStringW(HINST_THISCOMPONENT, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+    LoadStringW(HINST_THISCOMPONENT, IDC_VISPING, szWindowClass, MAX_LOADSTRING);
+}
 
 Visping::~Visping() {
     CloseHandle(hUpdateThread);
@@ -71,9 +74,7 @@ HRESULT Visping::Initialize()
     HRESULT hr;
     SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 
-    // Initialize strings
-    LoadStringW(HINST_THISCOMPONENT, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(HINST_THISCOMPONENT, IDC_VISPING, szWindowClass, MAX_LOADSTRING);
+    // Initialize strings;
     LoadStringW(HINST_THISCOMPONENT, IDS_SERVER_ADDRESS, szServerAddressDefault, MAX_LOADSTRING);
     GetModuleFileNameW(NULL, szPath, MAX_PATH);
 
@@ -202,7 +203,7 @@ HRESULT Visping::Initialize()
             );
             
             // The process was started by the user or show on startup is enabled.
-            if (__argc > 1 && __argv[1] == "startup" || showOnStartupMenuItemInfo.fState == MFS_CHECKED)
+            if (!(__argc > 1 && __argv[1] == "startup") || showOnStartupMenuItemInfo.fState == MFS_CHECKED)
                 ShowWindow(hwnd, SW_SHOWNORMAL);
 
             UpdateWindow(hwnd);
@@ -375,6 +376,7 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 case WM_RBUTTONUP:
                     POINT pt;
                     GetCursorPos(&pt);
+                    SetForegroundWindow(hwnd);
                     TrackPopupMenu(pApp->hNotifyIconMenu, 0, pt.x, pt.y, 0, hwnd, NULL);
                     break;
                 }
@@ -730,13 +732,27 @@ int WINAPI WinMain(
     // unlikely event that HeapSetInformation fails.
     HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 
-
     if (SUCCEEDED(CoInitialize(NULL)))
     {
         {
             Visping app;
 
-            if (SUCCEEDED(app.Initialize())) app.RunMessageLoop();
+            HANDLE hMutex = CreateMutexW(NULL, FALSE, L"VispingMutex");
+
+            if (GetLastError() == ERROR_ALREADY_EXISTS)
+            {
+                HWND hwnd = FindWindowW(app.szWindowClass, app.szTitle);
+
+                if (IsWindowVisible(hwnd))
+                    SetForegroundWindow(hwnd);
+                else
+                    ShowWindow(hwnd, SW_SHOWNORMAL);
+            }
+
+            else if (SUCCEEDED(app.Initialize())) 
+                app.RunMessageLoop();
+
+            CloseHandle(hMutex);
         }
         CoUninitialize();
     }
