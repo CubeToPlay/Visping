@@ -364,18 +364,17 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                 case WM_LBUTTONUP:
                     if (!IsWindowVisible(hwnd))
-                    {
                         ShowWindow(hwnd, SW_SHOWNORMAL);
-                        SetForegroundWindow(hwnd);
-                    }
-                    else SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+                    else if (GetForegroundWindow() == pApp->hwnd)
+                        SendMessage(hwnd, WM_CLOSE, NULL, NULL);
 
+                    SetForegroundWindow(hwnd);
+                    SetFocus(hwnd);
 
                     break;
                 case WM_RBUTTONUP:
                     POINT pt;
                     GetCursorPos(&pt);
-                    SetForegroundWindow(hwnd);
                     TrackPopupMenu(pApp->hNotifyIconMenu, 0, pt.x, pt.y, 0, hwnd, NULL);
                     break;
                 }
