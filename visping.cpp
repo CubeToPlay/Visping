@@ -4,6 +4,11 @@
 #include "framework.h"
 #include "Visping.h"
 
+#include <locale>
+#include <codecvt>
+#include <string>
+
+
 Visping::Visping() : 
     pFactory(NULL),
     pHwndRenderTarget(NULL),
@@ -19,6 +24,7 @@ Visping::Visping() :
 {
     LoadStringW(HINST_THISCOMPONENT, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(HINST_THISCOMPONENT, IDC_VISPING, szWindowClass, MAX_LOADSTRING);
+    LoadStringW(HINST_THISCOMPONENT, IDC_SETTINGS_FILE, szSettingsFileName, MAX_LOADSTRING);
 }
 
 Visping::~Visping() {
@@ -78,43 +84,52 @@ HRESULT Visping::Initialize()
     LoadStringW(HINST_THISCOMPONENT, IDS_SERVER_ADDRESS, szServerAddressDefault, MAX_LOADSTRING);
     GetModuleFileNameW(NULL, szPath, MAX_PATH);
 
-    CloseHandle(CreateFile(L"settings.ini",
-        GENERIC_WRITE,
-        0,
-        0,
-        CREATE_NEW,
-        FILE_ATTRIBUTE_NORMAL,
-        0)
-    );
-
-    wcscpy_s(szSettingsFilePath, szPath);
-    PathRemoveFileSpecW(szSettingsFilePath);
-    PathCombineW(szSettingsFilePath, szSettingsFilePath, L"settings.ini");
-
     // Initalize Other
     hNotifyIconMenu = CreatePopupMenu();
     AppendMenu(hNotifyIconMenu, MF_STRING, IDM_EXIT, L"Exit");
 
     GetClientRect(GetDesktopWindow(), &desktop);
 
+    // Create Settings File
+    DWORD bufferSize = MAX_PATH;
+    HANDLE processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, GetCurrentProcessId());
+    HANDLE tokenHandle;
+    OpenProcessToken(processHandle, TOKEN_QUERY, &tokenHandle);
+    GetUserProfileDirectoryW(tokenHandle, szUserPath, &bufferSize);
+
+    wcscpy_s(szPathStartup, (wcslen(szPath) + 1) * 2, szPath);
+    wcscat_s(szPathStartup, L" --startup");
+
+    wcscpy_s(szPathSettingsFile, szUserPath);
+    wcscat_s(szPathSettingsFile, L"\\.visping\\");
+
+    CreateDirectory(szPathSettingsFile, NULL);
+
+    wcscat_s(szPathSettingsFile, szSettingsFileName);
+    
+    CloseHandle(CreateFile(
+        szPathSettingsFile,
+        GENERIC_WRITE,
+        0,
+        NULL,
+        CREATE_NEW,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL)
+    );
+
     // Add to Startup
     HKEY hkey = NULL;
     RegCreateKey(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
-    RegSetValueEx(hkey, L"Visping", 0, REG_SZ, (BYTE*)wcscat_s(szPath, L" startup"), (wcslen(szPath) + 1) * 2);
+    RegSetValueEx(hkey, L"Visping", 0, REG_SZ, (BYTE*)szPathStartup, (wcslen(szPathStartup) + 1) * 2);
 
     // Run winsocket
     WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        // Handle error - Failed to initialize Winsock
-    }
-
-    GetPrivateProfileStringW(L"Server", L"address", szServerAddressDefault, szServerAddress, MAX_LOADSTRING, szSettingsFilePath);
-
-    GetPrivateProfileIntW(L"Window", L"center-window", 0, szSettingsFilePath);
+    GetPrivateProfileStringW(L"Server", L"address", szServerAddressDefault, szServerAddress, MAX_LOADSTRING, szPathSettingsFile);
+    GetPrivateProfileIntW(L"Window", L"center-window", 0, szPathSettingsFile);
 
     pingingServer = new Ping(szServerAddress, ARRAY_LENGTH);
-
     pingingServer->start();
 
     // Initialize device-independent resources, such
@@ -171,13 +186,12 @@ HRESULT Visping::Initialize()
 
             showOnStartupMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
             showOnStartupMenuItemInfo.fMask = MIIM_STATE;
-            showOnStartupMenuItemInfo.fState = (GetPrivateProfileIntW(L"Window", L"show-on-startup", 0, szSettingsFilePath) == 1) ? MFS_CHECKED : MFS_UNCHECKED;
+            showOnStartupMenuItemInfo.fState = (GetPrivateProfileIntW(L"Window", L"show-on-startup", 0, szPathSettingsFile) == 1) ? MFS_CHECKED : MFS_UNCHECKED;
             SetMenuItemInfo(hMenu, IDM_SHOW_STARTUP, FALSE, &showOnStartupMenuItemInfo);
-
 
             centerWindowMenuItemInfo.cbSize = sizeof(MENUITEMINFO);
             centerWindowMenuItemInfo.fMask = MIIM_STATE;
-            centerWindowMenuItemInfo.fState = (GetPrivateProfileIntW(L"Window", L"center-window", 1, szSettingsFilePath) == 1) ? MFS_CHECKED : MFS_UNCHECKED;
+            centerWindowMenuItemInfo.fState = (GetPrivateProfileIntW(L"Window", L"center-window", 1, szPathSettingsFile) == 1) ? MFS_CHECKED : MFS_UNCHECKED;
             SetMenuItemInfo(hMenu, IDM_CENTER_WINDOW, FALSE, &centerWindowMenuItemInfo);
 
             // Create a NOTIFYICONDATA structure.
@@ -198,13 +212,28 @@ HRESULT Visping::Initialize()
             int dpi = GetDpiForWindow(hwnd);
 
             updateWindowCentered(
-                GetPrivateProfileIntW(L"Window", L"position-x", (desktop.right - CLIENT_WIDTH) / 2, szSettingsFilePath), 
-                GetPrivateProfileIntW(L"Window", L"position-y", 0, szSettingsFilePath) 
+                GetPrivateProfileIntW(L"Window", L"position-x", (desktop.right - CLIENT_WIDTH) / 2, szPathSettingsFile),
+                GetPrivateProfileIntW(L"Window", L"position-y", 0, szPathSettingsFile)
             );
             
             // The process was started by the user or show on startup is enabled.
-            if (!(__argc > 1 && __argv[1] == "startup") || showOnStartupMenuItemInfo.fState == MFS_CHECKED)
+            bool startup = false;
+
+            for (int i = 1; i < __argc && !startup; i++)
+                if (__argv[i] == std::string("--startup"))
+                    startup = true;
+
+            if (!startup || showOnStartupMenuItemInfo.fState == MFS_CHECKED)
                 ShowWindow(hwnd, SW_SHOWNORMAL);
+
+            //for (int i = 0; i < __argc; i++)
+            //{
+            //    //std::cout << std::string(__argv[i]).c_str() << std::endl;
+            //    //OutputDebugStringA(std::string(__argv[i]).c_str());
+            //    //OutputDebugStringA("\n");
+            //    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+            //    WritePrivateProfileStringW(L"Inputs", std::to_wstring(i).c_str(), converter.from_bytes(__argv[i]).c_str(), szPathSettingsFile);
+            //}
 
             UpdateWindow(hwnd);
         }
@@ -284,20 +313,20 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     pApp->showOnStartupMenuItemInfo.fState = (pApp->showOnStartupMenuItemInfo.fState == MFS_CHECKED) ? MFS_UNCHECKED : MFS_CHECKED;
                     SetMenuItemInfo(pApp->hMenu, IDM_SHOW_STARTUP, FALSE, &(pApp->showOnStartupMenuItemInfo));
 
-                    WritePrivateProfileStringW(L"Window", L"show-on-startup", (pApp->showOnStartupMenuItemInfo.fState == MFS_CHECKED) ? L"1" : L"0", pApp->szSettingsFilePath);
+                    WritePrivateProfileStringW(L"Window", L"show-on-startup", (pApp->showOnStartupMenuItemInfo.fState == MFS_CHECKED) ? L"1" : L"0", pApp->szPathSettingsFile);
 
                     break;
                 case IDM_CENTER_WINDOW:
                     pApp->centerWindowMenuItemInfo.fState = (pApp->centerWindowMenuItemInfo.fState == MFS_CHECKED) ? MFS_UNCHECKED : MFS_CHECKED;
                     SetMenuItemInfo(pApp->hMenu, IDM_CENTER_WINDOW, FALSE, &(pApp->centerWindowMenuItemInfo));
 
-                    WritePrivateProfileStringW(L"Window", L"center-window", (pApp->centerWindowMenuItemInfo.fState == MFS_CHECKED) ? L"1" : L"0", pApp->szSettingsFilePath);
+                    WritePrivateProfileStringW(L"Window", L"center-window", (pApp->centerWindowMenuItemInfo.fState == MFS_CHECKED) ? L"1" : L"0", pApp->szPathSettingsFile);
 
                     if (pApp->centerWindowMenuItemInfo.fState == MFS_CHECKED) pApp->saveWindowPosition();
 
                     pApp->updateWindowCentered(
-                        GetPrivateProfileIntW(L"Window", L"position-x", (pApp->desktop.right - CLIENT_WIDTH) / 2, pApp->szSettingsFilePath),
-                        GetPrivateProfileIntW(L"Window", L"position-y", 0, pApp->szSettingsFilePath)
+                        GetPrivateProfileIntW(L"Window", L"position-x", (pApp->desktop.right - CLIENT_WIDTH) / 2, pApp->szPathSettingsFile),
+                        GetPrivateProfileIntW(L"Window", L"position-y", 0, pApp->szPathSettingsFile)
                     );
                     
                     break;
@@ -341,7 +370,6 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
             case WM_DESTROY:
             {
-
                 if (pApp->centerWindowMenuItemInfo.fState == MFS_UNCHECKED) pApp->saveWindowPosition();
                 Shell_NotifyIcon(NIM_DELETE, &(pApp->nid));
                 DestroyWindow(pApp->hwnd);
@@ -422,7 +450,7 @@ INT_PTR CALLBACK Visping::Server(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             WCHAR szBuffer[MAX_LOADSTRING];
             GetDlgItemText(hwnd, IDC_ADDRESS, szBuffer, MAX_LOADSTRING);
 
-            WritePrivateProfileStringW(L"Server", L"address", szBuffer, pApp->szSettingsFilePath);
+            WritePrivateProfileStringW(L"Server", L"address", szBuffer, pApp->szPathSettingsFile);
             wcscpy_s(pApp->szServerAddress, szBuffer);
             pApp->pingingServer->setAddress(szBuffer);
 
@@ -714,8 +742,8 @@ void Visping::saveWindowPosition() {
     RECT windowRect;
     GetWindowRect(hwnd, &windowRect);
 
-    WritePrivateProfileStringW(L"Window", L"position-x", std::to_wstring(windowRect.left).c_str(), szSettingsFilePath);
-    WritePrivateProfileStringW(L"Window", L"position-y", std::to_wstring(windowRect.top).c_str(), szSettingsFilePath);
+    WritePrivateProfileStringW(L"Window", L"position-x", std::to_wstring(windowRect.left).c_str(), szPathSettingsFile);
+    WritePrivateProfileStringW(L"Window", L"position-y", std::to_wstring(windowRect.top).c_str(), szPathSettingsFile);
 }
 
 int WINAPI WinMain(

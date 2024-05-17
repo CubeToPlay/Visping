@@ -7,6 +7,7 @@
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "userenv.lib")
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "Dwrite")
 
@@ -23,8 +24,9 @@
 #include <math.h>
 #include <malloc.h>
 #include <memory.h>
-#include <tchar.h>
 #include <shellapi.h>
+#include <tchar.h>
+#include <userenv.h>
 #include <wchar.h>
 #include <wincodec.h>
 

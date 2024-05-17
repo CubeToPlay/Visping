@@ -79,8 +79,11 @@ private:
 
     WCHAR szServerAddress[MAX_LOADSTRING];          // The server address string to ping
     WCHAR szServerAddressDefault[MAX_LOADSTRING];          // The server address string to ping
+    WCHAR szSettingsFileName[MAX_LOADSTRING];
     WCHAR szPath[MAX_PATH];
-    WCHAR szSettingsFilePath[MAX_PATH];
+    WCHAR szUserPath[MAX_PATH];
+    WCHAR szPathStartup[MAX_PATH];
+    WCHAR szPathSettingsFile[MAX_PATH];
     
     HWND hwnd;
     HMENU hMenu;

@@ -22,6 +22,7 @@
 #define IDM_SHOW_STARTUP                32772
 #define IDM_CENTER_WINDOW               32773
 #define IDM_HIDE                        32783
+#define IDC_SETTINGS_FILE				1001
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
