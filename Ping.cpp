@@ -6,39 +6,39 @@ Ping::Ping(wchar_t* server, int length) {
     dwRetVal = 0;
     replySize = 0;
 
-    memset(&hints, 0, sizeof(hints)); // Initialize hints to 0
+    //memset(&hints, 0, sizeof(hints)); // Initialize hints to 0
     hints.ai_family = AF_UNSPEC;     // Any address family (IPv4 or IPv6)
     hints.ai_socktype = SOCK_STREAM; // TCP sockets
 
-    pingVector = new std::vector<int>(length);
+    pingVector.reset(new std::vector<int>(length));
 
     setAddress(server);
 }
 
 Ping::~Ping() {
     stop();
-    free(&hints);
     WSACleanup();
-    delete pingVector;
 }
 
 void Ping::start() {
-    if (!run) {
-        run = true;
+    if (!run.load()) {
+        run.store(true);
         hIcmpFile = IcmpCreateFile();
         hThread = CreateThread(NULL, 0, ThreadLoop, this, 0, NULL);
     }
 }
 
 void Ping::stop() {
-    run = false;
-    IcmpCloseHandle(hIcmpFile);
-    CloseHandle(hThread);
+    if (run.load()){
+        run.store(false);
+        IcmpCloseHandle(hIcmpFile);
+        CloseHandle(hThread);
+    }
 }
 
 DWORD WINAPI Ping::ThreadLoop(LPVOID lpParam) {
     Ping* ping = static_cast<Ping*>(lpParam);
-    while (ping->run) {
+    while (ping->run.load()) {
         ping->insert(ping->ping());
         
         int sum = 0;
@@ -123,6 +123,7 @@ int Ping::ping() {
 
     int tripTime = DISCONNECT_VALUE;
     dwRetVal = IcmpSendEcho(hIcmpFile, ipAddress, sendData, sizeof(sendData), NULL, replyBuffer, replySize, PING_TIME_OUT);
+    
     if (dwRetVal != 0) tripTime = ((PICMP_ECHO_REPLY)replyBuffer)->RoundTripTime;
 
     free(replyBuffer);
@@ -141,3 +142,4 @@ int Ping::getMax() { return maximum; }
 int Ping::getMin() { return minimum; }
 double Ping::getInstability() { return instability; }
 double Ping::getAverage() { return average; }
+bool Ping::isRunning() { return run; }

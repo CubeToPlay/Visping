@@ -38,6 +38,8 @@
 #include <cstring>
 #include <thread>
 
+#include <atomic>
+
 
 template<class Interface>
 inline void SafeRelease(

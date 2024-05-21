@@ -24,6 +24,8 @@ public:
     void start();
     void stop();
 
+    bool isRunning();
+
     double getAverage();
     int getPing();
     int getPing(int index);
@@ -50,9 +52,9 @@ private:
     ULONG ipAddress;
     addrinfoW hints, *addressInfo;
 
-    bool run;
+    std::atomic<bool> run;
     double average, instability;
     int minimum, maximum;
     
-    std::vector<int>* pingVector;
+    std::auto_ptr<std::vector<int>> pingVector;
 };

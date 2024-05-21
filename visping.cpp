@@ -1,13 +1,7 @@
 // Visping.cpp : Defines the entry point for the application.
-//
 
 #include "framework.h"
 #include "Visping.h"
-
-#include <locale>
-#include <codecvt>
-#include <string>
-
 
 Visping::Visping() : 
     pFactory(NULL),
@@ -28,10 +22,12 @@ Visping::Visping() :
 }
 
 Visping::~Visping() {
+    running.store(false);
     CloseHandle(hUpdateThread);
     DestroyMenu(hNotifyIconMenu);
     SafeRelease(&pFactory);
     DiscardDeviceResources();
+    pingingServer->stop();
 }
 
 void Visping::DiscardDeviceResources()
@@ -51,7 +47,7 @@ void Visping::DiscardDeviceResources()
 
 DWORD WINAPI Visping::UpdateThreadLoop(LPVOID lpParam) {
     Visping* app = static_cast<Visping*>(lpParam);
-    while (true) {
+    while (app->running.load()) {
         InvalidateRect(app->hwnd, NULL, TRUE);
 
         std::wstring displayText = app->getDisplayText();
@@ -129,7 +125,9 @@ HRESULT Visping::Initialize()
     GetPrivateProfileStringW(L"Server", L"address", szServerAddressDefault, szServerAddress, MAX_LOADSTRING, szPathSettingsFile);
     GetPrivateProfileIntW(L"Window", L"center-window", 0, szPathSettingsFile);
 
-    pingingServer = new Ping(szServerAddress, ARRAY_LENGTH);
+    running.store(true);
+
+    pingingServer.reset(new Ping(szServerAddress, ARRAY_LENGTH));
     pingingServer->start();
 
     // Initialize device-independent resources, such
@@ -225,15 +223,6 @@ HRESULT Visping::Initialize()
 
             if (!startup || showOnStartupMenuItemInfo.fState == MFS_CHECKED)
                 ShowWindow(hwnd, SW_SHOWNORMAL);
-
-            //for (int i = 0; i < __argc; i++)
-            //{
-            //    //std::cout << std::string(__argv[i]).c_str() << std::endl;
-            //    //OutputDebugStringA(std::string(__argv[i]).c_str());
-            //    //OutputDebugStringA("\n");
-            //    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-            //    WritePrivateProfileStringW(L"Inputs", std::to_wstring(i).c_str(), converter.from_bytes(__argv[i]).c_str(), szPathSettingsFile);
-            //}
 
             UpdateWindow(hwnd);
         }
@@ -454,6 +443,7 @@ INT_PTR CALLBACK Visping::Server(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             wcscpy_s(pApp->szServerAddress, szBuffer);
             pApp->pingingServer->setAddress(szBuffer);
 
+            
             EndDialog(hwnd, wParam);
             break;
         case ID_CANCEL:
@@ -658,16 +648,19 @@ HRESULT Visping::OnRender()
 
         pHwndRenderTarget->FillRectangle(&textRect, pBlackBrush);
 
-        std::wstring displayText = getDisplayText();
-        pHwndRenderTarget->DrawTextW(
-            displayText.c_str(),
-            displayText.length(),
-            pWriteTextFormat,
-            &textRect,
-            pWhiteBrush,
-            D2D1_DRAW_TEXT_OPTIONS_NO_SNAP,
-            DWRITE_MEASURING_MODE_GDI_CLASSIC
-        );
+        if (pingingServer->isRunning())
+        {
+            std::wstring displayText = getDisplayText();
+            pHwndRenderTarget->DrawTextW(
+                displayText.c_str(),
+                displayText.length(),
+                pWriteTextFormat,
+                &textRect,
+                pWhiteBrush,
+                D2D1_DRAW_TEXT_OPTIONS_NO_SNAP,
+                DWRITE_MEASURING_MODE_GDI_CLASSIC
+            );
+        }
 
         hr = pHwndRenderTarget->EndDraw();
     }
@@ -784,6 +777,10 @@ int WINAPI WinMain(
         }
         CoUninitialize();
     }
+
+    /*while (true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(UPDATE_LOOP_INTERVAL));
+    }*/
 
     return 0;
 }

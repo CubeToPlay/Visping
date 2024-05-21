@@ -39,6 +39,8 @@ private:
 
     std::wstring getDisplayText();
 
+    std::atomic<bool> running;
+
     void updateWindowCentered(int px, int py);
     void saveWindowPosition();
 
@@ -95,7 +97,7 @@ private:
     MENUITEMINFO showOnStartupMenuItemInfo;
     MENUITEMINFO centerWindowMenuItemInfo;
 
-    Ping* pingingServer;
+    std::auto_ptr<Ping> pingingServer;
 
     // Delcare Pointers
     ID2D1Factory*                   pFactory;
