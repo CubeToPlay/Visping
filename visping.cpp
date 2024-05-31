@@ -751,26 +751,25 @@ int WINAPI WinMain(
 
     if (SUCCEEDED(CoInitialize(NULL)))
     {
+        Visping app;
+
+        HANDLE hMutex = CreateMutexW(NULL, FALSE, L"VispingMutex");
+
+        if (GetLastError() == ERROR_ALREADY_EXISTS)
         {
-            Visping app;
+            HWND hwnd = FindWindowW(app.szWindowClass, app.szTitle);
 
-            HANDLE hMutex = CreateMutexW(NULL, FALSE, L"VispingMutex");
-
-            if (GetLastError() == ERROR_ALREADY_EXISTS)
-            {
-                HWND hwnd = FindWindowW(app.szWindowClass, app.szTitle);
-
-                if (IsWindowVisible(hwnd))
-                    SetForegroundWindow(hwnd);
-                else
-                    ShowWindow(hwnd, SW_SHOWNORMAL);
-            }
-
-            else if (SUCCEEDED(app.Initialize())) 
-                app.RunMessageLoop();
-
-            CloseHandle(hMutex);
+            if (IsWindowVisible(hwnd))
+                SetForegroundWindow(hwnd);
+            else
+                ShowWindow(hwnd, SW_SHOWNORMAL);
         }
+
+        else if (SUCCEEDED(app.Initialize())) 
+            app.RunMessageLoop();
+
+        CloseHandle(hMutex);
+        
         CoUninitialize();
     }
 
