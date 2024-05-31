@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>16.0</VCProjectVersion>
+    <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{108496a4-4f86-4820-9e63-6ce6aa100564}</ProjectGuid>
+    <ProjectGuid>{71959aa0-b4bd-41e7-bfe7-ad60e0071942}</ProjectGuid>
     <RootNamespace>Visping</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -128,22 +128,24 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="ping.h" />
+    <ClInclude Include="Ping.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Visping.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Ping.cpp" />
     <ClCompile Include="Visping.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Visping.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="D:\Pictures\Visping.ico" />
-    <Image Include="D:\Pictures\Visping.png" />
-    <Image Include="icon1.ico" />
+    <Image Include="..\..\..\..\Downloads\Visping.ico" />
     <Image Include="Visping.ico" />
+    <Image Include="VispingDisconnect.ico" />
+    <Image Include="VispingSlow.ico" />
+    <Image Include="VispingUnstable.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

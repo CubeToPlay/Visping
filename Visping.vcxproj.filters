@@ -27,12 +27,15 @@
     <ClInclude Include="Visping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ping.h">
+    <ClInclude Include="Ping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Visping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -42,16 +45,19 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="D:\Pictures\Visping.ico">
+    <Image Include="..\..\..\..\Downloads\Visping.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="icon1.ico">
+    <Image Include="VispingDisconnect.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="VispingSlow.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="VispingUnstable.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Visping.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="D:\Pictures\Visping.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
