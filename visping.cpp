@@ -381,11 +381,7 @@ LRESULT CALLBACK Visping::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 switch (lParam)
                 {
                 case WM_LBUTTONUP:
-                    if (!IsWindowVisible(hwnd))
-                        ShowWindow(hwnd, SW_SHOWNORMAL);
-                    else if (GetForegroundWindow() == pApp->hwnd)
-                        SendMessage(hwnd, WM_CLOSE, NULL, NULL);
-
+                    ShowWindow(hwnd, SW_SHOWNORMAL);
                     SetForegroundWindow(hwnd);
                     SetFocus(hwnd);
 
@@ -777,10 +773,6 @@ int WINAPI WinMain(
         }
         CoUninitialize();
     }
-
-    /*while (true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(UPDATE_LOOP_INTERVAL));
-    }*/
 
     return 0;
 }
